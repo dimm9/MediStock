@@ -76,6 +76,10 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
 
+                    <!-- Ensure the plugin forks and uses the installed JDK's javac -->
+                    <fork>true</fork>
+                    <executable>${env.JAVA_HOME}/bin/javac</executable>
+
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
