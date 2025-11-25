@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/employees")
+@RequestMapping("/api/employees")
 @RequiredArgsConstructor
 public class EmployeeController {
 
@@ -23,8 +23,8 @@ public class EmployeeController {
     }
 
     @PostMapping
-    public EmployeeDTO create(@RequestBody EmployeeDTO dto, @RequestParam String password) {
-        return service.create(dto, password);
+    public EmployeeDTO create(@RequestBody EmployeeCreateRequest request) {
+        return service.create(request.getEmployee(), request.getPassword());
     }
 
     @PutMapping("/{id}")

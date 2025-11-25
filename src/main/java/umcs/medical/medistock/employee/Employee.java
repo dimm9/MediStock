@@ -18,7 +18,7 @@ public class Employee {
     private Long id;
 
     @Column(name = "hospital_id", nullable = false)
-    private Long hospital_id;
+    private Long hospitalId;
 
     @Column(nullable = false)
     private String name;

@@ -39,6 +39,7 @@ public class EmployeeService {
         employee.setSalary(dto.getSalary());
         employee.setLogin(dto.getLogin());
         employee.setActive(dto.isActive());
+        employee.setHospitalId(dto.getHospitalId());
         return mapper.toDTO(repository.save(employee));
     }
 
