@@ -1,35 +1,29 @@
 package umcs.medical.medistock.hospital;
 
- import java.math.BigDecimal;
+import jakarta.persistence.*;
+import lombok.*;
 
- import jakarta.persistence.*;
- import lombok.Getter;
- import lombok.Setter;
- import org.hibernate.annotations.Check;
+import java.math.BigDecimal;
 
- @Getter
- @Setter
- @Entity
- @Table(name = "hospital")
- @Check(constraints = "funds >= 0")
- public class Hospital {
+@Entity
+@Table(name = "hospital")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Hospital {
 
-     @Id
-     @GeneratedValue(strategy = GenerationType.IDENTITY)
-     private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-     @Column(nullable = false)
-     private String name;
+    @Column(nullable = false)
+    private String name;
 
-     @Column(nullable = false, precision = 14, scale = 2)
-     private BigDecimal funds;
+    @Column(nullable = false)
+    private String address;
 
-     public Hospital() {}
-
-     public Hospital(Long id, String name, BigDecimal funds) {
-         this.id = id;
-         this.name = name;
-         this.funds = funds;
-     }
-
- }
+    @Column(nullable = false, precision = 14, scale = 2)
+    private BigDecimal funds;
+}

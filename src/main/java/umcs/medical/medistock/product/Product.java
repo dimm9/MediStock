@@ -17,15 +17,25 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
+    @Column(name = "stock_id", nullable = false)
+    private Long stockId;
+
+    @Column(nullable = false)
     private String name;
 
-    @Column(name = "type")
+    @Column(nullable = false)
     private String type;
 
-    @Column(precision = 12, scale = 2)
+    @Column(precision = 12, scale = 2, nullable = false)
     private BigDecimal cost;
 
-    @Column(name = "is_available")
+    @Column(nullable = false)
+    private Integer quantity;
+
+    @Column(name = "is_available", nullable = false)
     private boolean available;
+
+    @Column(name = "media_url")
+    private String mediaUrl;
 }
+

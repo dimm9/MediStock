@@ -10,13 +10,13 @@ import java.util.stream.Collectors;
 public class EmployeeService {
 
     private final EmployeeRepository repository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    private final EmployeeMapper mapper = EmployeeMapper.INSTANCE;
+    private final EmployeeMapper mapper;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public List<EmployeeDTO> getAll() {
         return repository.findAll().stream()
                 .map(mapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public EmployeeDTO getById(Long id) {
@@ -28,19 +28,23 @@ public class EmployeeService {
     public EmployeeDTO create(EmployeeDTO dto, String rawPassword) {
         Employee employee = mapper.toEntity(dto);
         employee.setPasswordHash(passwordEncoder.encode(rawPassword));
-        return mapper.toDTO(repository.save(employee));
+        Employee saved = repository.save(employee);
+        return mapper.toDTO(saved);
     }
 
     public EmployeeDTO update(Long id, EmployeeDTO dto) {
         Employee employee = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
+
         employee.setName(dto.getName());
         employee.setRole(dto.getRole());
         employee.setSalary(dto.getSalary());
         employee.setLogin(dto.getLogin());
         employee.setActive(dto.isActive());
         employee.setHospitalId(dto.getHospitalId());
-        return mapper.toDTO(repository.save(employee));
+
+        Employee saved = repository.save(employee);
+        return mapper.toDTO(saved);
     }
 
     public void delete(Long id) {

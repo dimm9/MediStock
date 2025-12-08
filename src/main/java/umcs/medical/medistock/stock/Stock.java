@@ -2,8 +2,6 @@ package umcs.medical.medistock.stock;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.math.BigDecimal;
-import umcs.medical.medistock.hospital.Hospital;
 
 @Entity
 @Table(name = "stock")
@@ -18,10 +16,13 @@ public class Stock {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
+    @Column(nullable = false)
     private String name;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "hospital_id")
-    private Hospital hospital;
+    @Column(name = "hospital_id", nullable = false)
+    private Long hospitalId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StockCategory category;
 }

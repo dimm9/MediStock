@@ -10,6 +10,7 @@ import java.util.List;
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
 public class ProductController {
+
     private final ProductService productService;
 
     @GetMapping("/all")
@@ -20,6 +21,12 @@ public class ProductController {
     @GetMapping("/{id}")
     public ProductDTO getById(@PathVariable Long id) {
         return productService.getById(id);
+    }
+
+    // NOWY endpoint: products for a given stock
+    @GetMapping("/stock/{stockId}")
+    public List<ProductDTO> getByStock(@PathVariable Long stockId) {
+        return productService.getProductsByStock(stockId);
     }
 
     @PostMapping("/add")

@@ -38,5 +38,4 @@ public class Employee {
 
     @Column(nullable = false)
     private boolean active = true;
-
 }

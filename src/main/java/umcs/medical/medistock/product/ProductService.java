@@ -8,6 +8,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ProductService {
+
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
@@ -33,7 +34,9 @@ public class ProductService {
     public ProductDTO update(Long id, ProductDTO dto) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
+
         productMapper.updateEntityFromDto(dto, entity);
+
         Product saved = productRepository.save(entity);
         return productMapper.toDto(saved);
     }
@@ -44,4 +47,12 @@ public class ProductService {
         }
         productRepository.deleteById(id);
     }
+
+    public List<ProductDTO> getProductsByStock(Long stockId) {
+        return productRepository.findByStockId(stockId)
+                .stream()
+                .map(productMapper::toDto)
+                .toList();
+    }
+
 }
