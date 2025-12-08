@@ -23,7 +23,6 @@ public class ProductController {
         return productService.getById(id);
     }
 
-    // NOWY endpoint: products for a given stock
     @GetMapping("/stock/{stockId}")
     public List<ProductDTO> getByStock(@PathVariable Long stockId) {
         return productService.getProductsByStock(stockId);

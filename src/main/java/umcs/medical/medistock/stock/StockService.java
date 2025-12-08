@@ -44,4 +44,11 @@ public class StockService {
         }
         stockRepository.deleteById(id);
     }
+
+    public List<StockDTO> getByHospital(Long hospitalId) {
+        return stockRepository.findByHospitalId(hospitalId)
+                .stream()
+                .map(stockMapper::toDto)
+                .toList();
+    }
 }
