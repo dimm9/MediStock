@@ -3,6 +3,10 @@ package umcs.medical.medistock.employee;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import java.util.List;
 import java.util.stream.Collectors;
 @Service
@@ -14,7 +18,8 @@ public class EmployeeService {
     private final BCryptPasswordEncoder passwordEncoder;
 
     public List<EmployeeDTO> getAll() {
-        return repository.findAll().stream()
+        return repository.findAll()
+                .stream()
                 .map(mapper::toDTO)
                 .toList();
     }
@@ -45,6 +50,16 @@ public class EmployeeService {
 
         Employee saved = repository.save(employee);
         return mapper.toDTO(saved);
+    }
+
+    public EmployeeDTO changeRole(Long id, EmployeeRole role) {
+        Employee employee = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        employee.setRole(role);
+        repository.save(employee);
+
+        return mapper.toDTO(employee);
     }
 
     public void delete(Long id) {

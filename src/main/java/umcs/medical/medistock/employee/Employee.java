@@ -30,7 +30,7 @@ public class Employee {
     @Column(precision = 12, scale = 2)
     private BigDecimal salary;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "login", nullable = false,unique = true)
     private String login;
 
     @Column(name = "password_hash", nullable = false)

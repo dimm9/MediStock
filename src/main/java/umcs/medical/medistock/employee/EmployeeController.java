@@ -33,6 +33,10 @@ public class EmployeeController {
         return service.update(id, dto);
     }
 
+    @PutMapping("/{id}/role")
+    public EmployeeDTO changeRole(@PathVariable Long id, @RequestParam EmployeeRole role) {
+        return service.changeRole(id, role);
+    }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
