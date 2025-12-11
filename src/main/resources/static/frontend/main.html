@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ekran główny</title>
+    <style>
+        /* Reset podstawowych stylów */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Główny kontener */
+        .container {
+            display: flex;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Główna część strony */
+        .main-content {
+            flex: 1;
+            background-color: white;
+            padding: 10px;
+        }
+
+        /* przyciski na górze */
+        .btn {
+            background: linear-gradient(to right, #808080, #f0f0f0);
+            border: none;
+            padding: 15px 40px;
+            margin-right: 10px;
+            font-size: 18px;
+            color: black;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.5;
+	    scale: 1.1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 350px;
+            background: linear-gradient(to right, #bfbfbf, #ffffff);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 100px;
+            box-shadow: inset 15px 0 20px -10px rgba(0,0,0,0.15);
+        }
+
+        /* Sidebar*/
+        .sidebar {
+            width: 350px;
+            background: linear-gradient(to right, #bfbfbf, #ffffff);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 100px;
+            box-shadow: inset 15px 0 20px -10px rgba(0,0,0,0.15);
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            background-color: black;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 120px;
+        }
+
+        .logo span {
+            color: white;
+            font-size: 20px;
+            font-style: italic;
+            transform: rotate(-30deg);
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: black;
+            font-size: 20px;
+            font-weight: 400;
+            transition: transform 0.2s;
+        }
+
+        .menu a:hover {
+            transform: scale(1.1); 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <main class="main-content">
+            <button class="btn">Administrator</button>
+            <button class="btn">Lekarz</button>
+        </main>
+
+        <aside class="sidebar">
+            <div class="logo">
+                <span>logo</span>
+            </div>
+
+            <nav class="menu">
+                <a href="#">konto</a>
+                <a href="#">ustawienia</a>
+                <a href="#">wyloguj</a>
+            </nav>
+        </aside>
+    </div>
+
+</body>
+</html>
