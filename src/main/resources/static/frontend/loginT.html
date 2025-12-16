@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ekran Logowania</title>
+    <style>
+        /* Twoje istniejące style CSS pozostają bez zmian */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; height: 100vh; overflow: hidden; background-color: #f0f0f0; }
+        .container { display: flex; height: 100%; width: 100%; }
+        .main-content { flex: 1; background-color: white; display: flex; justify-content: center; align-items: center; padding: 50px; }
+        .login-box { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; }
+        .login-box h2 { margin-bottom: 10px; font-size: 28px; color: #333; }
+        .input-field { width: 100%; padding: 15px; font-size: 16px; border: 1px solid #ccc; background-color: #f9f9f9; border-radius: 4px; outline: none; transition: border-color 0.3s; }
+        .input-field:focus { border-color: #888; background-color: #fff; }
+        .btn-login { background: linear-gradient(to bottom, #a8a8a8, #e0e0e0); border: none; padding: 15px; font-size: 18px; font-weight: bold; color: black; cursor: pointer; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); margin-top: 10px; transition: transform 0.2s ease; }
+        .btn-login:hover { transform: scale(1.1); }
+        .sidebar { width: 350px; background: linear-gradient(to right, #bfbfbf, #ffffff); display: flex; flex-direction: column; align-items: center; padding-top: 100px; box-shadow: inset 15px 0 20px -10px rgba(0,0,0,0.15); }
+        .logo { width: 100px; height: 100px; background-color: black; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-bottom: 120px; }
+        .logo span { color: white; font-size: 20px; font-style: italic; transform: rotate(-30deg); }
+        .menu { display: flex; flex-direction: column; align-items: center; gap: 30px; }
+        .menu a { text-decoration: none; color: black; font-size: 20px; font-weight: 400; transition: transform 0.2s; }
+        .menu a:hover { transform: scale(1.1); }
+        
+        /* Dodatkowy styl dla komunikatu błędu */
+        .error-message { color: red; font-size: 14px; text-align: center; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="login-box">
+                <h2>Panel Logowania</h2>
+                
+                <input type="text" id="loginInput" class="input-field" placeholder="Login">
+                <input type="password" id="passwordInput" class="input-field" placeholder="Hasło">
+                
+                <p id="errorMsg" class="error-message">Błędny login lub hasło</p>
+
+                <button id="loginBtn" class="btn-login">ZALOGUJ SIĘ</button>
+            </div>
+        </main>
+
+        <aside class="sidebar">
+            <div class="logo">
+                <span>logo</span>
+            </div>
+
+            <nav class="menu">
+                <a href="#">Pomoc</a>
+                <a href="#">Kontakt</a>
+                <a href="#">O systemie</a>
+            </nav>
+        </aside>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080/api/auth/login';
+
+        const loginBtn = document.getElementById('loginBtn');
+        const loginInput = document.getElementById('loginInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const errorMsg = document.getElementById('errorMsg');
+
+        async function handleLogin() {
+            const login = loginInput.value;
+            const password = passwordInput.value;
+
+            errorMsg.style.display = 'none';
+
+            if (!login || !password) {
+                alert("Proszę wpisać login i hasło");
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        login: login,
+                        password: password
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    localStorage.setItem('jwt_token', data.token);
+                    localStorage.setItem('user_role', data.role);
+                    
+                    console.log("Zalogowano pomyślnie!", data);
+
+                    alert("Zalogowano pomyślnie! Token zapisany.");
+                } else {
+                    errorMsg.style.display = 'block';
+                    errorMsg.innerText = "Nieprawidłowe dane logowania.";
+                }
+            } catch (error) {
+                console.error("Błąd połączenia:", error);
+                errorMsg.style.display = 'block';
+                errorMsg.innerText = "Błąd połączenia z serwerem.";
+            }
+        }
+
+        loginBtn.addEventListener('click', handleLogin);
+
+        passwordInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+        });
+    </script>
+
+</body>
+</html>
