@@ -3,28 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ekran Logowania</title>
+    <title>Nowoczesny Ekran Logowania</title>
     <style>
-        /* Twoje istniejące style CSS pozostają bez zmian */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; height: 100vh; overflow: hidden; background-color: #f0f0f0; }
-        .container { display: flex; height: 100%; width: 100%; }
-        .main-content { flex: 1; background-color: white; display: flex; justify-content: center; align-items: center; padding: 50px; }
-        .login-box { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; }
-        .login-box h2 { margin-bottom: 10px; font-size: 28px; color: #333; }
-        .input-field { width: 100%; padding: 15px; font-size: 16px; border: 1px solid #ccc; background-color: #f9f9f9; border-radius: 4px; outline: none; transition: border-color 0.3s; }
-        .input-field:focus { border-color: #888; background-color: #fff; }
-        .btn-login { background: linear-gradient(to bottom, #a8a8a8, #e0e0e0); border: none; padding: 15px; font-size: 18px; font-weight: bold; color: black; cursor: pointer; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); margin-top: 10px; transition: transform 0.2s ease; }
-        .btn-login:hover { transform: scale(1.1); }
-        .sidebar { width: 350px; background: linear-gradient(to right, #bfbfbf, #ffffff); display: flex; flex-direction: column; align-items: center; padding-top: 100px; box-shadow: inset 15px 0 20px -10px rgba(0,0,0,0.15); }
-        .logo { width: 100px; height: 100px; background-color: black; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-bottom: 120px; }
-        .logo span { color: white; font-size: 20px; font-style: italic; transform: rotate(-30deg); }
-        .menu { display: flex; flex-direction: column; align-items: center; gap: 30px; }
-        .menu a { text-decoration: none; color: black; font-size: 20px; font-weight: 400; transition: transform 0.2s; }
-        .menu a:hover { transform: scale(1.1); }
         
-        /* Dodatkowy styl dla komunikatu błędu */
-        .error-message { color: red; font-size: 14px; text-align: center; display: none; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            height: 100vh; 
+            overflow: hidden; 
+            background-color: #f0f7ff; 
+            color: #334e68;
+        }
+
+        .container { 
+            display: flex; 
+            height: 100%; 
+            width: 100%; 
+        }
+        
+        .main-content { 
+            flex: 1; 
+            background-color: white; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 50px; 
+            position: relative;
+            z-index: 10;
+            box-shadow: 10px 0 40px rgba(0, 119, 230, 0.08);
+            border-top-right-radius: 30px;
+            border-bottom-right-radius: 30px;
+        }
+        
+        .login-box { 
+            width: 100%; 
+            max-width: 420px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 25px; 
+        }
+        
+        .login-box h2 { 
+            margin-bottom: 10px; 
+            font-size: 36px; 
+            color: #102a43; 
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .login-box p.subtitle {
+            color: #829ab1;
+            margin-top: -15px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .input-group {
+            position: relative;
+        }
+
+        .input-field { 
+            width: 100%; 
+            padding: 18px 20px;
+            padding-right: 50px; /* oko sprawdzania hasła tu */
+            font-size: 16px; 
+            border: 2px solid #dae1e7; 
+            background-color: #f8fafc; 
+            border-radius: 16px; 
+            outline: none; 
+            transition: all 0.3s ease; 
+            color: #243b53;
+        }
+        
+        .input-field::placeholder {
+            color: #bcccdc;
+        }
+
+        .input-field:focus { 
+            border-color: #3fa9f5; 
+            background-color: #fff; 
+            box-shadow: 0 0 0 4px rgba(63, 169, 245, 0.15);
+        }
+        
+        .btn-login { 
+            background: linear-gradient(135deg, #3fa9f5 0%, #0077e6 100%); 
+            border: none; 
+            padding: 20px; 
+            font-size: 16px; 
+            font-weight: 700; 
+            color: white; 
+            cursor: pointer; 
+            box-shadow: 0 10px 25px -5px rgba(0, 119, 230, 0.4); 
+            border-radius: 16px;
+            margin-top: 20px; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .btn-login:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 15px 30px -5px rgba(0, 119, 230, 0.5);
+        }
+        
+        .btn-login:active {
+            transform: translateY(-1px);
+        }
+        
+        .sidebar { 
+            width: 450px; 
+            background: linear-gradient(160deg, #e3f2fd 0%, #bbdefb 100%); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            padding: 40px; 
+            position: relative;
+        }
+
+        /* Decorative circle */
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0));
+            border-radius: 50%;
+        }
+        
+        .logo { 
+            width: 140px; 
+            height: 140px; 
+            background: white; 
+            border-radius: 40px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            margin-bottom: 60px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 78, 146, 0.15);
+            transform: rotate(-10deg);
+            transition: transform 0.5s ease;
+        }
+
+        .logo:hover {
+            transform: rotate(0deg) scale(1.05);
+        }
+        
+        .logo span { 
+            background: linear-gradient(135deg, #3fa9f5 0%, #0077e6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 28px; 
+            font-weight: 900; 
+            font-style: italic; 
+        }
+        
+        .menu { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 20px; 
+            width: 100%;
+        }
+        
+        .menu a { 
+            text-decoration: none; 
+            color: #486581; 
+            font-size: 18px; 
+            font-weight: 600; 
+            transition: all 0.3s; 
+            padding: 12px 40px;
+            border-radius: 50px;
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .menu a:hover { 
+            color: #0077e6; 
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #829ab1;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s;
+            z-index: 5;
+        }
+
+        .password-toggle:hover {
+            color: #3fa9f5;
+        }
+        
+        .error-message { 
+            color: #d64545; 
+            background-color: #ffeef0;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 14px; 
+            text-align: center; 
+            display: none; 
+            border: 1px solid #f7c5c5;
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        @media (max-width: 850px) {
+            .container { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; height: 200px; padding: 20px; flex-direction: row; justify-content: space-around; }
+            .logo { width: 60px; height: 60px; margin-bottom: 0; border-radius: 15px; }
+            .logo span { font-size: 14px; }
+            .menu { flex-direction: row; gap: 10px; width: auto; }
+            .menu a { padding: 8px 15px; font-size: 14px; }
+            .main-content { border-radius: 0; }
+        }
     </style>
 </head>
 <body>
@@ -32,26 +242,37 @@
     <div class="container">
         <main class="main-content">
             <div class="login-box">
-                <h2>Panel Logowania</h2>
+                <div>
+                    <h2>Witaj ponownie</h2>
+                    <p class="subtitle">Zaloguj się, aby kontynuować</p>
+                </div>
                 
-                <input type="text" id="loginInput" class="input-field" placeholder="Login">
-                <input type="password" id="passwordInput" class="input-field" placeholder="Hasło">
+                <div class="input-group">
+                    <input type="text" id="loginInput" class="input-field" placeholder="Adres e-mail">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="passwordInput" class="input-field" placeholder="Hasło">
+                    <button type="button" id="togglePassword" class="password-toggle" aria-label="Pokaż hasło" tabindex="-1">
+                        <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg id="eyeOffIcon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                    </button>
+                </div>
                 
                 <p id="errorMsg" class="error-message">Błędny login lub hasło</p>
 
-                <button id="loginBtn" class="btn-login">ZALOGUJ SIĘ</button>
+                <button id="loginBtn" class="btn-login">Zaloguj się</button>
             </div>
         </main>
 
         <aside class="sidebar">
             <div class="logo">
-                <span>logo</span>
+                <span>LOGO</span>
             </div>
 
             <nav class="menu">
                 <a href="#">Pomoc</a>
                 <a href="#">Kontakt</a>
-                <a href="#">O systemie</a>
+                <a href="#">O nas</a>
             </nav>
         </aside>
     </div>
@@ -64,6 +285,26 @@
         const passwordInput = document.getElementById('passwordInput');
         const errorMsg = document.getElementById('errorMsg');
 
+        // Logika pokazywania/ukrywania hasła
+        const togglePasswordBtn = document.getElementById('togglePassword');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const eyeOffIcon = document.getElementById('eyeOffIcon');
+
+        togglePasswordBtn.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            if (type === 'text') {
+                eyeIcon.style.display = 'none';
+                eyeOffIcon.style.display = 'block';
+                togglePasswordBtn.setAttribute('aria-label', 'Ukryj hasło');
+            } else {
+                eyeIcon.style.display = 'block';
+                eyeOffIcon.style.display = 'none';
+                togglePasswordBtn.setAttribute('aria-label', 'Pokaż hasło');
+            }
+        });
+
         async function handleLogin() {
             const login = loginInput.value;
             const password = passwordInput.value;
@@ -71,7 +312,8 @@
             errorMsg.style.display = 'none';
 
             if (!login || !password) {
-                alert("Proszę wpisać login i hasło");
+                errorMsg.innerText = "Proszę wpisać login i hasło";
+                errorMsg.style.display = 'block';
                 return;
             }
 
@@ -94,16 +336,17 @@
                     localStorage.setItem('user_role', data.role);
                     
                     console.log("Zalogowano pomyślnie!", data);
-
-                    alert("Zalogowano pomyślnie! Token zapisany.");
+                    loginBtn.innerText = "Sukces!";
+                    loginBtn.style.background = "#28a745";
                 } else {
                     errorMsg.style.display = 'block';
                     errorMsg.innerText = "Nieprawidłowe dane logowania.";
                 }
             } catch (error) {
                 console.error("Błąd połączenia:", error);
+                
                 errorMsg.style.display = 'block';
-                errorMsg.innerText = "Błąd połączenia z serwerem.";
+                errorMsg.innerText = "Błąd połączenia z serwerem";
             }
         }
 
