@@ -3,109 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ekran główny</title>
+    <title>Ekran Główny</title>
     <style>
-        /* Reset podstawowych stylów */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            height: 100vh; 
+            overflow: hidden; 
+            background-color: #f0f7ff; 
+            color: #334e68;
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            height: 100vh;
-            overflow: hidden;
+        .container { 
+            display: flex; 
+            height: 100%; 
+            width: 100%; 
+        }
+        
+        .main-content { 
+            flex: 1; 
+            background-color: white; 
+            display: flex; 
+            flex-direction: column;
+            padding: 30px; 
+            position: relative;
+            z-index: 10;
+            box-shadow: 10px 0 40px rgba(0, 119, 230, 0.08);
+            border-top-right-radius: 30px;
+            border-bottom-right-radius: 30px;
+            gap: 20px;
         }
 
-        /* Główny kontener */
-        .container {
+        .top-nav {
             display: flex;
-            height: 100%;
+            justify-content: center;
+            gap: 15px;
             width: 100%;
+            padding-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn { 
+            background: linear-gradient(135deg, #3fa9f5 0%, #0077e6 100%); 
+            border: none; 
+            padding: 15px 25px; 
+            min-width: 150px;
+            font-size: 14px; 
+            font-weight: 700; 
+            color: white; 
+            cursor: pointer; 
+            box-shadow: 0 4px 15px rgba(0, 119, 230, 0.2); 
+            border-radius: 12px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+        
+        .nav-btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 20px rgba(0, 119, 230, 0.3);
+        }
+        
+        .nav-btn:active {
+            transform: translateY(0);
         }
 
-        /* Główna część strony */
-        .main-content {
+        /* Główny panel - placeholder */
+        .panel-display {
             flex: 1;
-            background-color: white;
-            padding: 10px;
-        }
-
-        /* przyciski na górze */
-        .btn {
-            background: linear-gradient(to right, #808080, #f0f0f0);
-            border: none;
-            padding: 15px 40px;
-            margin-right: 10px;
-            font-size: 18px;
-            color: black;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        .btn:hover {
-            opacity: 0.5;
-	    scale: 1.1;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 350px;
-            background: linear-gradient(to right, #bfbfbf, #ffffff);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 100px;
-            box-shadow: inset 15px 0 20px -10px rgba(0,0,0,0.15);
-        }
-
-        /* Sidebar*/
-        .sidebar {
-            width: 350px;
-            background: linear-gradient(to right, #bfbfbf, #ffffff);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 100px;
-            box-shadow: inset 15px 0 20px -10px rgba(0,0,0,0.15);
-        }
-
-        .logo {
-            width: 100px;
-            height: 100px;
-            background-color: black;
-            border-radius: 50%;
+            width: 100%;
+            border: 2px solid rgba(218, 225, 231, 0.6);
+            border-radius: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 120px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .logo span {
-            color: white;
-            font-size: 20px;
-            font-style: italic;
-            transform: rotate(-30deg);
+        .panel-text {
+            font-size: 24px;
+            color: #829ab1;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .sidebar { 
+            width: 200px;
+            background: linear-gradient(160deg, #e3f2fd 0%, #bbdefb 100%); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start;
+            padding: 30px 10px; 
+            position: relative;
         }
 
-        .menu {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 30px;
+        .logo { 
+            width: 80px;
+            height: 80px; 
+            background: white; 
+            border-radius: 25px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            margin-bottom: 40px; 
+            margin-top: 20px;
+            box-shadow: 0 15px 30px -10px rgba(0, 78, 146, 0.15);
+            transform: rotate(-5deg);
+            transition: transform 0.5s ease;
         }
 
-        .menu a {
-            text-decoration: none;
-            color: black;
-            font-size: 20px;
-            font-weight: 400;
-            transition: transform 0.2s;
+        .logo:hover {
+            transform: rotate(0deg) scale(1.05);
+        }
+        
+        .logo span { 
+            background: linear-gradient(135deg, #3fa9f5 0%, #0077e6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 16px; 
+            font-weight: 900; 
+            font-style: italic; 
+        }
+        
+        .menu { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 15px; 
+            width: 100%;
+        }
+        
+        .menu a { 
+            text-decoration: none; 
+            color: #486581; 
+            font-size: 14px; 
+            font-weight: 600; 
+            transition: all 0.3s; 
+            padding: 10px 0;
+            width: 80%;
+            text-align: center;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .menu a:hover { 
+            color: #0077e6; 
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
-        .menu a:hover {
-            transform: scale(1.1); 
+        @media (max-width: 850px) {
+            .container { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; height: auto; padding: 10px; flex-direction: row; justify-content: space-between; align-items: center;}
+            .logo { width: 50px; height: 50px; margin: 0; }
+            .logo span { font-size: 10px; }
+            .menu { flex-direction: row; gap: 5px; width: auto; }
+            .menu a { padding: 5px 10px; font-size: 12px; width: auto; }
+            .main-content { border-radius: 0; padding: 20px; }
+            .top-nav { gap: 10px; }
+            .nav-btn { min-width: auto; padding: 10px 15px; font-size: 12px; flex: 1; }
         }
     </style>
 </head>
@@ -113,22 +175,38 @@
 
     <div class="container">
         <main class="main-content">
-            <button class="btn">Administrator</button>
-            <button class="btn">Lekarz</button>
+            <div class="top-nav">
+                <button class="nav-btn" onclick="selectPanel('Panel Administratora')">Administrator</button>
+                <button class="nav-btn" onclick="selectPanel('Panel Lekarza')">Lekarz</button>
+                <button class="nav-btn" onclick="selectPanel('Panel Pielęgniarki')">Pielęgniarka</button>
+                <button class="nav-btn" onclick="selectPanel('Panel Magazyniera')">Magazynier</button>
+            </div>
+
+            <div class="panel-display">
+                <h2 id="panelText" class="panel-text">Wybierz rolę z paska powyżej</h2>
+            </div>
         </main>
 
         <aside class="sidebar">
             <div class="logo">
-                <span>logo</span>
+                <span>LOGO</span>
             </div>
 
             <nav class="menu">
-                <a href="#">konto</a>
-                <a href="#">ustawienia</a>
-                <a href="#">wyloguj</a>
+                <a href="#">Konto</a>
+                <a href="#">Ustawienia</a>
+                <a href="#">Wyloguj</a>
             </nav>
         </aside>
     </div>
+
+    <script>
+        function selectPanel(text) {
+            const panelText = document.getElementById('panelText');
+            panelText.innerText = text;
+            panelText.style.color = '#334e68';
+        }
+    </script>
 
 </body>
 </html>
