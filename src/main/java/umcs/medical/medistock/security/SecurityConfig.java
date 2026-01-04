@@ -35,7 +35,9 @@ public class SecurityConfig {
                 registry.addMapping("/**")
                         .allowedOrigins(
                                 "http://127.0.0.1:5500",
-                                "http://localhost:5500"
+                                "http://localhost:5500",
+                                "http://127.0.0.1:63342",
+                                "http://localhost:63342"
                         )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
@@ -57,8 +59,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/**")
-                        .hasAnyRole("ADMINISTRATOR", "WAREHOUSE_WORKER", "DOCTOR", "NURSE")
-                        .anyRequest().authenticated()
+                        .authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -48,3 +48,8 @@ CREATE TABLE employee (
                           password_hash TEXT NOT NULL,
                           active BOOLEAN NOT NULL DEFAULT TRUE
 );
+
+ALTER TYPE employee_role ADD VALUE IF NOT EXISTS 'UNREGISTERED';
+
+ALTER TABLE employee ALTER COLUMN hospital_id DROP NOT NULL;
+ALTER TABLE employee ALTER COLUMN name DROP NOT NULL;

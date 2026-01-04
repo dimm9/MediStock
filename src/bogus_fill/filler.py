@@ -1,5 +1,6 @@
 import psycopg2
 from psycopg2.extras import execute_values
+import bcrypt
 
 # Prompt for database credentials
 DB_CONFIG = {
@@ -35,12 +36,16 @@ products = [
     (5, "MRI Machine", "Imaging Equipment", 60000.00, 2, True, "http://example.com/mri_machine")
 ]
 
+def bcrypt_hash(plain: str) -> str:
+    return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
 employees = [
-    (1, "Dr. John Doe", "ADMINISTRATOR", 5000.00, "johndoe", "hashed_password_1", True),
-    (2, "Dr. Jane Smith", "DOCTOR", 4000.00, "janesmith", "hashed_password_2", True),
-    (3, "Nurse Alice Brown", "NURSE", 3000.00, "alicebrown", "hashed_password_3", True),
-    (4, "Bob White", "WAREHOUSE_WORKER", 2500.00, "bobwhite", "hashed_password_4", True),
-    (5, "Dr. Charlie Black", "DOCTOR", 4500.00, "charlieblack", "hashed_password_5", True)
+    (1, "Dr. John Doe", "ADMINISTRATOR", 5000.00, "johndoe", bcrypt_hash("password123"), True),
+    (2, "Dr. Jane Smith", "DOCTOR", 4000.00, "janesmith", bcrypt_hash("password123"), True),
+    (3, "Nurse Alice Brown", "NURSE", 3000.00, "alicebrown", bcrypt_hash("password123"), True),
+    (4, "Bob White", "WAREHOUSE_WORKER", 2500.00, "bobwhite", bcrypt_hash("password123"), True),
+    (5, "Dr. Charlie Black", "DOCTOR", 4500.00, "charlieblack", bcrypt_hash("password123"), True)
 ]
 
 # Insert data into the database
@@ -49,6 +54,8 @@ def insert_data():
         # Connect to the database
         conn = psycopg2.connect(**DB_CONFIG)
         cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM employee")
 
         # Insert hospitals
         execute_values(cursor, """

@@ -357,6 +357,12 @@
 <script>
     // ===== DEMO dla braku połączenia =====
     const BACKEND_URL = "http://localhost:8080";
+    const token = localStorage.getItem('jwt_token');
+    if (!token) {
+        // brak tokenu => wracamy na login
+        window.location.href = "login.html"; // dopasuj nazwę
+    }
+
     const HOSPITAL_ID = 1;
 
     const MOCK_STOCKS = [
@@ -402,7 +408,12 @@
 
         try {
             // Próba pobrania z API
-            const res = await fetch(url);
+            const res = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
             if (!res.ok) throw new Error("HTTP " + res.status);
             const stocks = await res.json();
             renderStocks(stocks);
@@ -449,9 +460,19 @@
 
         const url = `${BACKEND_URL}/api/products/stock/${encodeURIComponent(stockId)}`;
 
-        try {
-            const res = await fetch(url);
+        try {z
+            const res = await fetch(url, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (res.status === 401 || res.status === 403) {
+                localStorage.removeItem('jwt_token');
+                window.location.href = "login.html";
+                return;
+            }
+
             if (!res.ok) throw new Error("HTTP " + res.status);
+
             const products = await res.json();
             renderProducts(products, stockLabel);
         } catch (err) {

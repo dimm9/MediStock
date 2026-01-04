@@ -48,6 +48,10 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
 
+        System.out.println("LOGIN ATTEMPT: " + request.getLogin());
+        System.out.println("DB URL: " +
+                System.getProperty("spring.datasource.url"));
+
         Employee employee = repository.findByLogin(request.getLogin())
                 .orElseThrow(() -> new RuntimeException("Invalid login or password"));
 
@@ -64,4 +68,5 @@ public class AuthService {
                 .role(employee.getRole().name())
                 .build();
     }
+
 }

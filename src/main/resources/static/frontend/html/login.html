@@ -331,13 +331,18 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    
+
                     localStorage.setItem('jwt_token', data.token);
                     localStorage.setItem('user_role', data.role);
-                    
-                    console.log("Zalogowano pomyślnie!", data);
+                    localStorage.setItem('user_id', data.id);
+                    localStorage.setItem('user_login', data.login);
+
+                    // (opcjonalnie) UI
                     loginBtn.innerText = "Sukces!";
                     loginBtn.style.background = "#28a745";
+
+                    // najważniejsze: przejście do stocków
+                    window.location.href = "stockTEST.html"; // <- dopasuj nazwę pliku
                 } else {
                     errorMsg.style.display = 'block';
                     errorMsg.innerText = "Nieprawidłowe dane logowania.";
