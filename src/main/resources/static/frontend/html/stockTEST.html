@@ -363,7 +363,12 @@
         window.location.href = "login.html"; // dopasuj nazwę
     }
 
-    const HOSPITAL_ID = 1;
+    const HOSPITAL_ID = Number(localStorage.getItem('hospital_id'));
+    if (!HOSPITAL_ID) {
+        showMessage("Brak przypisanego szpitala do konta.", "error");
+        localStorage.clear();
+        window.location.href = "login.html";
+    }
 
     const MOCK_STOCKS = [
         { id: 101, name: "Magazyn Centralny", category: "Ogólny" },
@@ -426,7 +431,7 @@
             await delay(300); // opóźnienie w demo
             renderStocks(MOCK_STOCKS);
             showMessage("Tryb Demo: Brak połączenia z serwerem. Wyświetanie danych przykładowych.", "success");
-            
+
             if (MOCK_STOCKS.length > 0) {
                 loadProductsForStock(MOCK_STOCKS[0].id, `${MOCK_STOCKS[0].name} (${MOCK_STOCKS[0].category})`);
             }
@@ -460,7 +465,7 @@
 
         const url = `${BACKEND_URL}/api/products/stock/${encodeURIComponent(stockId)}`;
 
-        try {z
+        try {
             const res = await fetch(url, {
                 headers: { Authorization: `Bearer ${token}` }
             });
