@@ -29,20 +29,35 @@ stocks = [
 ]
 
 products = [
-    (1, "Stethoscope", "Diagnostic Tool", 50.00, 100, True, "http://example.com/stethoscope"),
-    (2, "Antibiotics", "Medication", 75.00, 200, True, "http://example.com/antibiotics"),
-    (3, "Blood Test Kit", "Lab Equipment", 100.00, 150, True, "http://example.com/blood_test_kit"),
-    (4, "Scalpel", "Surgical Tool", 25.00, 300, True, "http://example.com/scalpel"),
-    (5, "MRI Machine", "Imaging Equipment", 60000.00, 2, True, "http://example.com/mri_machine")
+    # BASIC_MEDICAL_EQUIPMENT (1)
+    (1, "Stethoscope", "BASIC_MEDICAL_EQUIPMENT", 50.00, 100, True, "/images/stethoscope.png"),
+    (1, "Gloves Nitrile M", "BASIC_MEDICAL_EQUIPMENT", 20.00, 5000, True, "/images/gloves-nitrile-m.png"),
+    (1, "Surgical Mask", "BASIC_MEDICAL_EQUIPMENT", 15.00, 3000, True, "/images/surgical-mask.png"),
+    (1, "Syringe 5ml", "BASIC_MEDICAL_EQUIPMENT", 0.30, 8000, True, "/images/syringe-5ml.png"),
+
+    # MEDICINES (2)
+    (2, "Antibiotics", "MEDICINES", 75.00, 200, True, "/images/antibiotics.png"),
+
+    # LABORATORY_EQUIPMENT (3)
+    (3, "Blood Test Kit", "LABORATORY_EQUIPMENT", 100.00, 150, True, "/images/blood-test-kit.png"),
+
+    # TECHNICAL_EQUIPMENT (4)
+    (4, "Scalpel", "TECHNICAL_EQUIPMENT", 25.00, 300, True, "/images/scalpel.png"),
+    (4, "Defibrillator", "TECHNICAL_EQUIPMENT", 12000.00, 5, True, "/images/defibrillator.png"),
+
+    # SPECIALIZED_MEDICAL_EQUIPMENT (5)
+    (5, "Cardiomonitor", "SPECIALIZED_MEDICAL_EQUIPMENT", 1500.00, 10, True, "/images/cardiomonitor.png"),
+    (5, "Infusion Pump", "SPECIALIZED_MEDICAL_EQUIPMENT", 3500.00, 7, True, "/images/infusion-pump.png"),
 ]
+
 
 def bcrypt_hash(plain: str) -> str:
     return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 employees = [
-    (1, "Dr. John Doe", "ADMINISTRATOR", 5000.00, "johndoe", bcrypt_hash("password123"), True),
-    (2, "Dr. Jane Smith", "DOCTOR", 4000.00, "janesmith", bcrypt_hash("password123"), True),
+    (2, "Dr. John Doe", "ADMINISTRATOR", 5000.00, "johndoe", bcrypt_hash("password123"), True),
+    (1, "Dr. Jane Smith", "DOCTOR", 4000.00, "janesmith", bcrypt_hash("password123"), True),
     (3, "Nurse Alice Brown", "NURSE", 3000.00, "alicebrown", bcrypt_hash("password123"), True),
     (4, "Bob White", "WAREHOUSE_WORKER", 2500.00, "bobwhite", bcrypt_hash("password123"), True),
     (5, "Dr. Charlie Black", "DOCTOR", 4500.00, "charlieblack", bcrypt_hash("password123"), True)
@@ -55,7 +70,10 @@ def insert_data():
         conn = psycopg2.connect(**DB_CONFIG)
         cursor = conn.cursor()
 
+        cursor.execute("DELETE FROM product")
         cursor.execute("DELETE FROM employee")
+        cursor.execute("DELETE FROM stock")
+        cursor.execute("DELETE FROM hospital")
 
         # Insert hospitals
         execute_values(cursor, """

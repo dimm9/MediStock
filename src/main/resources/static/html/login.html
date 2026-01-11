@@ -331,6 +331,8 @@
 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log("LOGIN RESPONSE:", data);
+                    console.log("ROLE:", JSON.stringify(data.role));
 
                     localStorage.setItem('jwt_token', data.token);
                     localStorage.setItem('user_role', data.role);
@@ -342,8 +344,9 @@
                     loginBtn.innerText = "Sukces!";
                     loginBtn.style.background = "#28a745";
 
-                    // najważniejsze: przejście do stocków
-                    window.location.href = "stockTEST.html"; // <- dopasuj nazwę pliku
+                    const role = String(data.role || "").toUpperCase();
+                    if (role === "ADMINISTRATOR") window.location.href = "admin.html";
+                    else window.location.href = "stockTEST.html";
                 } else {
                     errorMsg.style.display = 'block';
                     errorMsg.innerText = "Nieprawidłowe dane logowania.";

@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel administratora</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #f0f7ff;
+            color: #334e68;
+        }
+
+        .container {
+            display: flex;
+            height: 100%;
+            width: 100%;
+        }
+
+        .main-content {
+            flex: 1;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 10px 0 40px rgba(0, 119, 230, 0.08);
+            border-top-right-radius: 30px;
+            border-bottom-right-radius: 30px;
+            overflow-y: auto;
+        }
+
+        .main-content::-webkit-scrollbar { width: 8px; }
+        .main-content::-webkit-scrollbar-track { background: #f1f1f1; }
+        .main-content::-webkit-scrollbar-thumb { background: #bcccdc; border-radius: 4px; }
+        .main-content::-webkit-scrollbar-thumb:hover { background: #829ab1; }
+
+        h1 {
+            font-size: 32px;
+            color: #102a43;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        h2 {
+            font-size: 20px;
+            color: #334e68;
+            margin: 25px 0 15px;
+            font-weight: 600;
+            border-bottom: 2px solid #f0f7ff;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 12px;
+            background-color: #f0f7ff;
+            color: #334e68;
+            margin-bottom: 20px;
+            border: 1px solid #dae1e7;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.error {
+            background-color: #ffeef0;
+            color: #d64545;
+            border-color: #f7c5c5;
+            display: block;
+        }
+
+        .message.success {
+            background-color: #e6fffa;
+            color: #234e52;
+            border-color: #b2f5ea;
+            display: block;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3fa9f5 0%, #0077e6 100%);
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 119, 230, 0.2);
+            border-radius: 12px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 119, 230, 0.3);
+        }
+
+        .btn:active { transform: translateY(0); }
+
+        .btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(63, 169, 245, 0.4);
+        }
+
+        .btn.secondary {
+            background: white;
+            color: #3fa9f5;
+            border: 2px solid #3fa9f5;
+            box-shadow: none;
+        }
+        .btn.secondary:hover { background: #3fa9f5; color: white; }
+
+        .sidebar {
+            width: 200px;
+            background: linear-gradient(160deg, #e3f2fd 0%, #bbdefb 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 30px 10px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 40px;
+            margin-top: 20px;
+            box-shadow: 0 15px 30px -10px rgba(0, 78, 146, 0.15);
+            transform: rotate(-5deg);
+            transition: transform 0.5s ease;
+        }
+
+        .logo:hover { transform: rotate(0deg) scale(1.05); }
+
+        .logo span {
+            background: linear-gradient(135deg, #3fa9f5 0%, #0077e6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 16px;
+            font-weight: 900;
+            font-style: italic;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #486581;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            padding: 10px 0;
+            width: 80%;
+            text-align: center;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+        }
+
+        .menu a:hover {
+            color: #0077e6;
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        /* proste elementy admin */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin: 10px 0 15px;
+        }
+
+        .input, .select {
+            padding: 12px 14px;
+            border: 1px solid #dae1e7;
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            background: white;
+            color: #334e68;
+            min-width: 200px;
+        }
+
+        .input:focus, .select:focus {
+            border-color: #3fa9f5;
+            box-shadow: 0 0 0 3px rgba(63,169,245,0.18);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            overflow: hidden;
+            border-radius: 16px;
+            border: 1px solid #dae1e7;
+        }
+
+        thead th {
+            text-align: left;
+            padding: 12px;
+            background: #f8fafc;
+            color: #334e68;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            border-bottom: 1px solid #dae1e7;
+        }
+
+        tbody td {
+            padding: 12px;
+            border-bottom: 1px solid #dae1e7;
+            font-size: 14px;
+            color: #334e68;
+            vertical-align: top;
+        }
+
+        tbody tr:last-child td { border-bottom: none; }
+
+        .mini {
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+
+        .danger {
+            background: #ffeef0;
+            color: #d64545;
+            border: 1px solid #f7c5c5;
+            box-shadow: none;
+        }
+
+        .tabs { display:flex; gap:10px; flex-wrap:wrap; margin: 5px 0 10px; }
+        .tab {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid #dae1e7;
+            background: #f8fafc;
+            cursor: pointer;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.3px;
+            color: #334e68;
+        }
+        .tab.active {
+            border-color: #3fa9f5;
+            box-shadow: 0 0 0 3px rgba(63,169,245,0.18);
+            background: white;
+            color: #102a43;
+        }
+        .hidden { display:none; }
+
+        @media (max-width: 850px) {
+            .container { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; height: auto; padding: 10px; flex-direction: row; justify-content: space-between; align-items: center; }
+            .logo { width: 50px; height: 50px; margin: 0; }
+            .logo span { font-size: 10px; }
+            .menu { flex-direction: row; gap: 5px; width: auto; }
+            .menu a { padding: 5px 10px; font-size: 12px; width: auto; }
+            .main-content { border-radius: 0; padding: 20px; }
+            .input, .select { min-width: 160px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <main class="main-content">
+        <h1>Panel administratora</h1>
+        <div id="info" class="message"></div>
+
+        <div class="tabs">
+            <div id="tabProducts" class="tab active">Produkty</div>
+            <div id="tabEmployees" class="tab">Pracownicy</div>
+            <button id="logoutBtn" class="btn secondary" style="margin-left:auto;">Wyloguj</button>
+        </div>
+
+        <!-- ===== Produkty ===== -->
+        <section id="productsSection">
+            <h2>Produkty</h2>
+
+            <div class="toolbar">
+                <input id="prodSearch" class="input" placeholder="Szukaj (nazwa / typ)..." />
+                <select id="prodSort" class="select">
+                    <option value="name_asc">Sort: nazwa A→Z</option>
+                    <option value="name_desc">Sort: nazwa Z→A</option>
+                    <option value="qty_desc">Sort: ilość malejąco</option>
+                    <option value="qty_asc">Sort: ilość rosnąco</option>
+                    <option value="cost_desc">Sort: cena malejąco</option>
+                    <option value="cost_asc">Sort: cena rosnąco</option>
+                </select>
+                <button id="prodReload" class="btn">Odśwież</button>
+            </div>
+
+            <h2>Dodaj produkt</h2>
+            <div class="toolbar">
+                <input id="pName" class="input" placeholder="Nazwa" />
+                <input id="pType" class="input" placeholder="Typ" />
+                <input id="pQty" class="input" placeholder="Ilość" type="number" min="0" />
+                <input id="pCost" class="input" placeholder="Cena" type="number" min="0" step="0.01" />
+                <select id="pAvail" class="select">
+                    <option value="true">Dostępny</option>
+                    <option value="false">Niedostępny</option>
+                </select>
+                <input id="pStockId" class="input" placeholder="stockId (liczba)" type="number" min="1" />
+                <button id="prodAdd" class="btn">Dodaj</button>
+            </div>
+
+            <div id="productsTable"></div>
+        </section>
+
+        <!-- ===== Pracownicy ===== -->
+        <section id="employeesSection" class="hidden">
+            <h2>Pracownicy</h2>
+
+            <div class="toolbar">
+                <input id="empSearch" class="input" placeholder="Szukaj (login / name / rola)..." />
+                <select id="empSort" class="select">
+                    <option value="login_asc">Sort: login A→Z</option>
+                    <option value="login_desc">Sort: login Z→A</option>
+                    <option value="role_asc">Sort: rola A→Z</option>
+                    <option value="role_desc">Sort: rola Z→A</option>
+                </select>
+                <button id="empReload" class="btn">Odśwież</button>
+            </div>
+
+            <h2>Dodaj pracownika</h2>
+            <div class="toolbar">
+                <input id="eLogin" class="input" placeholder="Login" />
+                <input id="ePass" class="input" placeholder="Hasło" type="password" />
+
+                <input id="eName" class="input" placeholder="Imię i nazwisko (name)" />
+
+                <select id="eRole" class="select">
+                    <option value="ADMINISTRATOR">ADMINISTRATOR</option>
+                    <option value="DOCTOR">DOCTOR</option>
+                    <option value="NURSE">NURSE</option>
+                    <option value="WAREHOUSE_WORKER">WAREHOUSE_WORKER</option>
+                </select>
+
+                <input id="eSalary" class="input" placeholder="Salary (np. 6500.00)" type="number" min="0" step="0.01" />
+                <input id="eHospitalId" class="input" placeholder="hospitalId" type="number" min="1" />
+
+                <label style="display:flex; align-items:center; gap:10px; padding: 0 6px;">
+                    <input id="eActive" type="checkbox" checked />
+                    Aktywny
+                </label>
+
+                <button id="empAdd" class="btn">Dodaj</button>
+            </div>
+            <div id="employeesTable"></div>
+        </section>
+    </main>
+
+    <aside class="sidebar">
+        <div class="logo"><span>LOGO</span></div>
+        <nav class="menu">
+            <a id="goStocks">Magazyny</a>
+            <a href="#">Pomoc</a>
+            <a href="#">Kontakt</a>
+            <a href="#">O systemie</a>
+        </nav>
+    </aside>
+</div>
+
+<script>
+    const BACKEND_URL = "http://localhost:8080";
+    const token = localStorage.getItem("jwt_token");
+    if (!token) window.location.href = "login.html";
+
+    const role = String(localStorage.getItem("role") || localStorage.getItem("user_role") || "")
+        .trim()
+        .toUpperCase();
+
+    if (!(role === "ADMIN" || role === "ADMINISTRATOR")) {
+        window.location.href = "stockTEST.html";
+    }
+
+    function showMessage(text, type="normal") {
+        const el = document.getElementById("info");
+        el.textContent = text;
+        if (type === "error") el.className = "message error";
+        else if (type === "success") el.className = "message success";
+        else el.className = "message";
+        el.style.display = text ? "block" : "none";
+    }
+
+    async function api(path, options = {}) {
+        const res = await fetch(`${BACKEND_URL}${path}`, {
+            ...options,
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+                ...(options.headers || {})
+            }
+        });
+
+        if (res.status === 401 || res.status === 403) {
+            localStorage.clear();
+            window.location.href = "login.html";
+            return null;
+        }
+        return res;
+    }
+
+    // ===== Tabs
+    const tabProducts = document.getElementById("tabProducts");
+    const tabEmployees = document.getElementById("tabEmployees");
+    const productsSection = document.getElementById("productsSection");
+    const employeesSection = document.getElementById("employeesSection");
+
+    function setTab(t) {
+        const isProd = t === "prod";
+        tabProducts.classList.toggle("active", isProd);
+        tabEmployees.classList.toggle("active", !isProd);
+        productsSection.classList.toggle("hidden", !isProd);
+        employeesSection.classList.toggle("hidden", isProd);
+    }
+    tabProducts.onclick = () => setTab("prod");
+    tabEmployees.onclick = () => setTab("emp");
+
+    // ===== Logout / navigation
+    document.getElementById("logoutBtn").onclick = () => { localStorage.clear(); window.location.href = "login.html"; };
+    document.getElementById("goStocks").onclick = () => { window.location.href = "stockTEST.html"; };
+
+    // =========================
+    //  PRODUCTS
+    // =========================
+    let productsCache = [];
+
+    const prodSearch = document.getElementById("prodSearch");
+    const prodSort = document.getElementById("prodSort");
+
+    function productFilteredSorted() {
+        const q = (prodSearch.value || "").trim().toLowerCase();
+        let list = [...productsCache];
+
+        if (q) {
+            list = list.filter(p =>
+                String(p.name || "").toLowerCase().includes(q) ||
+                String(p.type || "").toLowerCase().includes(q)
+            );
+        }
+
+        const s = prodSort.value;
+        const byStr = (k, dir) => list.sort((a,b) => {
+            const A = String(a[k] ?? "").toLowerCase();
+            const B = String(b[k] ?? "").toLowerCase();
+            return dir === "asc" ? A.localeCompare(B) : B.localeCompare(A);
+        });
+        const byNum = (k, dir) => list.sort((a,b) => (dir==="asc" ? (Number(a[k]||0)-Number(b[k]||0)) : (Number(b[k]||0)-Number(a[k]||0))));
+
+        if (s==="name_asc") byStr("name","asc");
+        if (s==="name_desc") byStr("name","desc");
+        if (s==="qty_asc") byNum("quantity","asc");
+        if (s==="qty_desc") byNum("quantity","desc");
+        if (s==="cost_asc") byNum("cost","asc");
+        if (s==="cost_desc") byNum("cost","desc");
+
+        return list;
+    }
+
+    function renderProducts() {
+        const wrap = document.getElementById("productsTable");
+        const list = productFilteredSorted();
+
+        if (!list.length) {
+            wrap.innerHTML = `<p class="message" style="display:block">Brak produktów.</p>`;
+            return;
+        }
+
+        wrap.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Nazwa</th><th>Typ</th><th>Ilość</th><th>Cena</th><th>Dostępny</th><th>Akcje</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(p => `
+            <tr>
+              <td>${p.id}</td>
+              <td>${escapeHtml(p.name)}</td>
+              <td>${escapeHtml(p.type)}</td>
+              <td>${Number(p.quantity||0)}</td>
+              <td>${Number(p.cost||0).toFixed(2)} PLN</td>
+              <td>${p.available ? "TAK" : "NIE"}</td>
+              <td>
+                <button class="btn mini danger" onclick="deleteProduct(${p.id})">Usuń</button>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+    }
+
+    async function loadProducts() {
+        const res = await api("/api/products/all", { method: "GET" });
+        if (!res) return;
+        if (!res.ok) { showMessage("Nie udało się pobrać produktów.", "error"); return; }
+        productsCache = await res.json();
+        renderProducts();
+    }
+
+    async function addProduct() {
+        const dto = {
+            name: document.getElementById("pName").value.trim(),
+            type: document.getElementById("pType").value.trim(),
+            quantity: Number(document.getElementById("pQty").value || 0),
+            cost: Number(document.getElementById("pCost").value || 0),
+            available: document.getElementById("pAvail").value === "true",
+            mediaUrl: null,
+            stockId: Number(document.getElementById("pStockId").value || 0)
+        };
+
+        if (!dto.name || !dto.type || !dto.stockId) {
+            showMessage("Uzupełnij: nazwa, typ, stockId.", "error");
+            return;
+        }
+
+        const res = await api("/api/products/add", { method: "POST", body: JSON.stringify(dto) });
+        if (!res) return;
+        if (!res.ok) { showMessage("Nie udało się dodać produktu.", "error"); return; }
+
+        showMessage("Dodano produkt.", "success");
+        ["pName","pType","pQty","pCost","pStockId"].forEach(id => document.getElementById(id).value = "");
+        await loadProducts();
+    }
+
+    window.deleteProduct = async function(id) {
+        if (!confirm("Usunąć produkt ID " + id + "?")) return;
+        const res = await api(`/api/products/delete/${encodeURIComponent(id)}`, { method: "DELETE" });
+        if (!res) return;
+        if (!res.ok) { showMessage("Nie udało się usunąć produktu.", "error"); return; }
+        showMessage("Usunięto produkt.", "success");
+        await loadProducts();
+    };
+
+    document.getElementById("prodReload").onclick = loadProducts;
+    document.getElementById("prodAdd").onclick = addProduct;
+    prodSearch.oninput = renderProducts;
+    prodSort.onchange = renderProducts;
+
+    // =========================
+    //  EMPLOYEES
+    // =========================
+    let employeesCache = [];
+    const empSearch = document.getElementById("empSearch");
+    const empSort = document.getElementById("empSort");
+
+    function employeesFilteredSorted() {
+        const q = (empSearch.value || "").trim().toLowerCase();
+        let list = [...employeesCache];
+
+        if (q) {
+            list = list.filter(e =>
+                String(e.login || "").toLowerCase().includes(q) ||
+                String(e.name || "").toLowerCase().includes(q) ||
+                String(e.role || "").toLowerCase().includes(q)
+            );
+        }
+
+        const s = empSort.value;
+        const byStr = (k, dir) => list.sort((a,b) => {
+            const A = String(a[k] ?? "").toLowerCase();
+            const B = String(b[k] ?? "").toLowerCase();
+            return dir === "asc" ? A.localeCompare(B) : B.localeCompare(A);
+        });
+
+        if (s==="login_asc") byStr("login","asc");
+        if (s==="login_desc") byStr("login","desc");
+        if (s==="role_asc") byStr("role","asc");
+        if (s==="role_desc") byStr("role","desc");
+
+        return list;
+    }
+
+
+    function renderEmployees() {
+        const wrap = document.getElementById("employeesTable");
+        const list = employeesFilteredSorted();
+
+        if (!list.length) {
+            wrap.innerHTML = `<p class="message" style="display:block">Brak pracowników.</p>`;
+            return;
+        }
+
+        wrap.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Login</th>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Salary</th>
+            <th>Hospital ID</th>
+            <th>Active</th>
+            <th>Akcje</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(e => `
+            <tr>
+              <td>${e.id}</td>
+              <td>${escapeHtml(e.login || "")}</td>
+              <td>${escapeHtml(e.name || "")}</td>
+              <td>${escapeHtml(e.role || "")}</td>
+              <td>${e.salary != null ? Number(e.salary).toFixed(2) : ""}</td>
+              <td>${Number(e.hospitalId || 0)}</td>
+              <td>${e.active ? "TAK" : "NIE"}</td>
+              <td>
+                <button class="btn mini danger" onclick="deleteEmployee(${e.id})">Usuń</button>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+    }
+
+
+
+    async function loadEmployees() {
+        const res = await api("/api/employees", { method: "GET" });
+        if (!res) return;
+        if (!res.ok) { showMessage("Nie udało się pobrać pracowników.", "error"); return; }
+        employeesCache = await res.json();
+        renderEmployees();
+    }
+
+    async function addEmployee() {
+        const employee = {
+            login: document.getElementById("eLogin").value.trim(),
+            name: document.getElementById("eName").value.trim(),
+            role: document.getElementById("eRole").value,
+            salary: (() => {
+                const v = document.getElementById("eSalary").value;
+                return v === "" ? null : Number(v);
+            })(),
+            hospitalId: Number(document.getElementById("eHospitalId").value || 0),
+            active: document.getElementById("eActive").checked
+        };
+
+        const password = document.getElementById("ePass").value;
+
+        // wymagane wg encji: hospitalId, name, login, password_hash (czyli password w payload)
+        if (!employee.login || !employee.name || !password || !employee.hospitalId) {
+            showMessage("Uzupełnij: login, hasło, name, hospitalId.", "error");
+            return;
+        }
+
+        // jeśli backend ma @Column(nullable=false) na role, to też sprawdzaj:
+        if (!employee.role) {
+            showMessage("Wybierz rolę.", "error");
+            return;
+        }
+
+        const payload = { employee, password };
+
+        const res = await api("/api/employees", { method: "POST", body: JSON.stringify(payload) });
+        if (!res) return;
+
+        if (!res.ok) {
+            const txt = await res.text().catch(() => "");
+            console.error("ADD EMPLOYEE failed:", res.status, txt);
+            showMessage("Nie udało się dodać pracownika.", "error");
+            return;
+        }
+
+        showMessage("Dodano pracownika.", "success");
+
+        ["eLogin","ePass","eName","eSalary","eHospitalId"].forEach(id => document.getElementById(id).value = "");
+        document.getElementById("eActive").checked = true;
+        document.getElementById("eRole").value = "DOCTOR";
+
+        await loadEmployees();
+    }
+
+
+    window.deleteEmployee = async function(id) {
+        if (!confirm("Usunąć pracownika ID " + id + "?")) return;
+        const res = await api(`/api/employees/${encodeURIComponent(id)}`, { method: "DELETE" });
+        if (!res) return;
+        if (!res.ok) { showMessage("Nie udało się usunąć pracownika.", "error"); return; }
+        showMessage("Usunięto pracownika.", "success");
+        await loadEmployees();
+    };
+
+    document.getElementById("empReload").onclick = loadEmployees;
+    document.getElementById("empAdd").onclick = addEmployee;
+    empSearch.oninput = renderEmployees;
+    empSort.onchange = renderEmployees;
+
+    function escapeHtml(s) {
+        return String(s)
+            .replaceAll("&","&amp;")
+            .replaceAll("<","&lt;")
+            .replaceAll(">","&gt;")
+            .replaceAll('"',"&quot;")
+            .replaceAll("'","&#039;");
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        await loadProducts();
+        await loadEmployees();
+    });
+</script>
+</body>
+</html>
