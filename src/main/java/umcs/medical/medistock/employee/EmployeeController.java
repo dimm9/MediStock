@@ -13,6 +13,7 @@ public class EmployeeController {
 
     private final EmployeeService service;
 
+    //api bez usunietych uzytkownikow
     @GetMapping
     public List<EmployeeDTO> getAll() {
         return service.getAll();
@@ -40,6 +41,27 @@ public class EmployeeController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+
+    // =========================================================
+    // ADMIN API (widzi też inactive)
+    // =========================================================
+
+    @GetMapping("/admin")
+    public List<EmployeeDTO> getAllForAdmin() {
+        return service.getAllForAdmin();
+    }
+
+    @GetMapping("/admin/{id}")
+    public EmployeeDTO getByIdForAdmin(@PathVariable Long id) {
+        return service.getByIdForAdmin(id);
+    }
+
+    @PutMapping("/admin/{id}/restore")
+    public ResponseEntity<Void> restore(@PathVariable Long id) {
+        service.restore(id);
         return ResponseEntity.noContent().build();
     }
 }

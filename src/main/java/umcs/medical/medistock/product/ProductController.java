@@ -13,32 +13,41 @@ public class ProductController {
 
     private final ProductService productService;
 
+    //user
+    @GetMapping("/stock/{stockId}")
+    public List<ProductDTO> getAvailableByStock(@PathVariable Long stockId) {
+        return productService.getProductsByStock(stockId);
+    }
+    @GetMapping("/{id}")
+    public ProductDTO getAvailableById(@PathVariable Long id) {
+        return productService.getActiveById(id);
+    }
+
+    @PostMapping("/use/{id}")
+    public ResponseEntity<Void> use(
+            @PathVariable Long id,
+            @RequestParam int amount
+    ) {
+        productService.use(id, amount);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ADMIN
     @GetMapping("/all")
     public List<ProductDTO> getAll() {
         return productService.getAll();
     }
 
-    @GetMapping("/{id}")
-    public ProductDTO getById(@PathVariable Long id) {
-        return productService.getById(id);
+    @PutMapping("/admin/{id}/quantity")
+    public ResponseEntity<Void> setQuantity(
+            @PathVariable Long id,
+            @RequestParam int value
+    ) {
+        productService.setQuantity(id, value);
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/stock/{stockId}")
-    public List<ProductDTO> getByStock(@PathVariable Long stockId) {
-        return productService.getProductsByStock(stockId);
-    }
-
-    @PostMapping("/add")
-    public ResponseEntity<ProductDTO> create(@RequestBody ProductDTO dto) {
-        return ResponseEntity.status(201).body(productService.create(dto));
-    }
-
-    @PutMapping("/update/{id}")
-    public ProductDTO update(@PathVariable Long id, @RequestBody ProductDTO dto) {
-        return productService.update(id, dto);
-    }
-
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/admin/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         productService.delete(id);
         return ResponseEntity.noContent().build();

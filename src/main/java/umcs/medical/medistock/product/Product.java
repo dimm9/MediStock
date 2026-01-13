@@ -37,5 +37,11 @@ public class Product {
 
     @Column(name = "media_url")
     private String mediaUrl;
+
+    @PrePersist
+    @PreUpdate
+    private void syncAvailability() {
+        this.available = this.quantity != null && this.quantity > 0;
+    }
 }
 

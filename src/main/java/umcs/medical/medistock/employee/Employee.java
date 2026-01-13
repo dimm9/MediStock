@@ -2,10 +2,15 @@ package umcs.medical.medistock.employee;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
+
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "employee")
+@SQLDelete(sql = "UPDATE employee SET active = false WHERE id = ?")
+@Where(clause = "active = true")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -39,3 +44,4 @@ public class Employee {
     @Column(nullable = false)
     private boolean active = true;
 }
+

@@ -24,8 +24,23 @@ public class EmployeeService {
                 .toList();
     }
 
+    //ADMIN: wszyscy (active + inactive)
+    public List<EmployeeDTO> getAllForAdmin() {
+        return repository.findAllIncludingInactive()
+                .stream()
+                .map(mapper::toDTO)
+                .toList();
+    }
+
     public EmployeeDTO getById(Long id) {
         return repository.findById(id)
+                .map(mapper::toDTO)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+    }
+
+    //ADMIN: także soft-deleted
+    public EmployeeDTO getByIdForAdmin(Long id) {
+        return repository.findByIdIncludingInactive(id)
                 .map(mapper::toDTO)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
     }
@@ -38,22 +53,20 @@ public class EmployeeService {
     }
 
     public EmployeeDTO update(Long id, EmployeeDTO dto) {
-        Employee employee = repository.findById(id)
+        Employee employee = repository.findByIdIncludingInactive(id)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
         employee.setName(dto.getName());
         employee.setRole(dto.getRole());
         employee.setSalary(dto.getSalary());
         employee.setLogin(dto.getLogin());
-        employee.setActive(dto.isActive());
         employee.setHospitalId(dto.getHospitalId());
+        employee.setActive(dto.isActive());
 
-        Employee saved = repository.save(employee);
-        return mapper.toDTO(saved);
+        return mapper.toDTO(repository.save(employee));
     }
-
     public EmployeeDTO changeRole(Long id, EmployeeRole role) {
-        Employee employee = repository.findById(id)
+        Employee employee = repository.findByIdIncludingInactive(id)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
         employee.setRole(role);
@@ -62,7 +75,13 @@ public class EmployeeService {
         return mapper.toDTO(employee);
     }
 
+    // soft delete
     public void delete(Long id) {
-        repository.deleteById(id);
+        repository.deleteById(id); // -> active=false
+    }
+
+    // restore
+    public void restore(Long id) {
+        repository.restore(id);
     }
 }
