@@ -3,6 +3,7 @@ package umcs.medical.medistock.product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -11,6 +12,8 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final ProductUsageRepository usageRepository;
+
     //user
     public List<ProductDTO> getProductsByStock(Long stockId) {
         return productRepository.findByStockIdAndAvailableTrue(stockId)
@@ -52,7 +55,7 @@ public class ProductService {
     }
 
     // USER:  zmniejsza ilość
-    public void use(Long productId, int amount) {
+    public void use(Long productId, Long userId, int amount) {
         if (amount <= 0)
             throw new IllegalArgumentException("Amount must be > 0");
 
@@ -64,27 +67,64 @@ public class ProductService {
 
         product.setQuantity(product.getQuantity() - amount);
         productRepository.save(product);
+
+        // zapis do historii
+        ProductUsage usage = ProductUsage.builder()
+                .productId(productId)
+                .userId(userId)
+                .amount(amount)
+                .timestamp(LocalDateTime.now())
+                .adminAction(false)
+                .build();
+
+        usageRepository.save(usage);
     }
 
     // ADMIN: ustawia ilość ręcznie
-    public void setQuantity(Long productId, int quantity) {
-        if (quantity < 0)
-            throw new IllegalArgumentException("Quantity cannot be negative");
+    public void setQuantity(Long productId, int quantity, Long adminId) {
+        if (quantity < 0) throw new IllegalArgumentException("Quantity cannot be negative");
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
+        int oldQuantity = product.getQuantity();
         product.setQuantity(quantity);
         productRepository.save(product);
+
+        ProductUsage usage = ProductUsage.builder()
+                .productId(productId)
+                .userId(adminId)
+                .amount(quantity - oldQuantity)
+                .timestamp(LocalDateTime.now())
+                .adminAction(true)
+                .build();
+
+        usageRepository.save(usage);
     }
 
-    // ADMIN: hard delete
+    public void delete(Long id, Long adminId) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-    public void delete(Long id) {
-        if (!productRepository.existsById(id))
-            throw new RuntimeException("Product not found");
+        ProductUsage usage = ProductUsage.builder()
+                .productId(id)
+                .userId(adminId)
+                .amount(-product.getQuantity())
+                .timestamp(LocalDateTime.now())
+                .adminAction(true)
+                .build();
 
-        productRepository.deleteById(id);
+        usageRepository.save(usage);
+
+        productRepository.delete(product);
     }
 
+    // HISTORIA
+    public List<ProductUsage> getUserHistory(Long userId) {
+        return usageRepository.findByUserId(userId);
+    }
+
+    public List<ProductUsage> getAdminHistory() {
+        return usageRepository.findByAdminActionTrue();
+    }
 }
