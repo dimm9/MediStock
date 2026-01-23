@@ -53,3 +53,12 @@ ALTER TYPE employee_role ADD VALUE IF NOT EXISTS 'UNREGISTERED';
 
 ALTER TABLE employee ALTER COLUMN hospital_id DROP NOT NULL;
 ALTER TABLE employee ALTER COLUMN name DROP NOT NULL;
+
+CREATE TABLE product_usage (
+                               id BIGSERIAL PRIMARY KEY,
+                               product_id BIGINT NOT NULL,
+                               user_id BIGINT NOT NULL,
+                               amount INTEGER NOT NULL,
+                               timestamp TIMESTAMP NOT NULL,
+                               admin_action BOOLEAN NOT NULL
+);

@@ -467,6 +467,8 @@
     // ===== PRODUCTS =====
 
     async function loadProductsForStock(stockId, stockLabel) {
+        currentStockId = stockId;
+        currentStockLabel = stockLabel;
         const container = document.getElementById("products-container");
         container.innerHTML = `<p class="message" style="display:block">Ładowanie produktów dla magazynu: <strong>${stockLabel}</strong>...</p>`;
 
@@ -492,6 +494,38 @@
             await delay(300);
             const mockProducts = MOCK_PRODUCTS[stockId] || [];
             renderProducts(mockProducts, stockLabel);
+        }
+    }
+
+    async function useProduct(id, name, currentQty) {
+        const amountStr = prompt(`Ile sztuk produktu "${name}" chcesz pobrać? (Dostępne: ${currentQty})`, "1");
+        if (amountStr === null) return; // Anulowano
+        const amount = parseInt(amountStr);
+        if (isNaN(amount) || amount <= 0) {
+            alert("Podaj poprawną liczbę.");
+            return;
+        }
+        if (amount > currentQty) {
+            alert("Nie ma tyle produktu na stanie!");
+            return;
+        }
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/products/use/${id}?amount=${amount}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (res.ok) {
+                showMessage(`Pobrano ${amount} szt. "${name}".`, "success");
+                loadProductsForStock(currentStockId, currentStockLabel);
+            } else {
+                console.error("Błąd", res.status);
+                showMessage("Błąd podczas pobierania produktu.", "error");
+            }
+        } catch (err) {
+            console.error(err);
+            showMessage("Błąd połączenia.", "error");
         }
     }
 
@@ -522,7 +556,7 @@
             // obrazek / placeholder
             const img = document.createElement("img");
             if (p.mediaUrl) {
-                img.src = "." + p.mediaUrl;
+                img.src = BACKEND_URL + p.mediaUrl;
             } else {
                 // generowanie placeholdera
                 img.src = `https://placehold.co/260x160/f0f7ff/334e68?text=${encodeURIComponent(p.name)}`;
@@ -566,14 +600,16 @@
             const useBtn = document.createElement("button");
             useBtn.className = "product-use-btn";
             useBtn.textContent = "Użyj";
-            useBtn.onclick = () => {
-                console.log("Use clicked for product:", p);
-                alert(`Użyto produktu: ${p.name}`);
-                // p.quantity = Math.max(0, p.quantity - 1);
-            };
+
+            if (p.quantity <= 0 || !p.available) {
+                useBtn.style.opacity = "0.5";
+                useBtn.disabled = true;
+                useBtn.style.cursor = "not-allowed";
+            } else {
+                useBtn.onclick = () => useProduct(p.id, p.name, p.quantity);
+            }
 
             content.appendChild(useBtn);
-            // ============================
 
             card.appendChild(content);
             grid.appendChild(card);
