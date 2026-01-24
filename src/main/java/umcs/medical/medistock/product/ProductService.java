@@ -41,89 +41,60 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Product not found"));
     }
 
-    public ProductDTO create(ProductDTO dto) {
+    public ProductDTO create(ProductDTO dto, Long adminId) {
         Product entity = productMapper.toEntity(dto);
-        return productMapper.toDto(productRepository.save(entity));
+        Product saved = productRepository.save(entity);
+        saveLog(saved.getId(), adminId, saved.getQuantity(), "Utworzono produkt: " + saved.getName());
+        return productMapper.toDto(saved);
     }
 
-    public ProductDTO update(Long id, ProductDTO dto) {
+    public ProductDTO update(Long id, ProductDTO dto, Long adminId) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
+        String oldDetails = entity.getName() + " (" + entity.getQuantity() + " szt.)";
         productMapper.updateEntityFromDto(dto, entity);
-        return productMapper.toDto(productRepository.save(entity));
+        Product saved = productRepository.save(entity);
+        saveLog(saved.getId(), adminId, 0, "Edytowano produkt. Było: " + oldDetails);
+        return productMapper.toDto(saved);
     }
 
-    // USER:  zmniejsza ilość
     public void use(Long productId, Long userId, int amount) {
         if (amount <= 0)
             throw new IllegalArgumentException("Amount must be > 0");
-
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
         if (product.getQuantity() < amount)
             throw new RuntimeException("Not enough items in stock");
-
         product.setQuantity(product.getQuantity() - amount);
         productRepository.save(product);
-
-        // zapis do historii
-        ProductUsage usage = ProductUsage.builder()
-                .productId(productId)
-                .userId(userId)
-                .amount(amount)
-                .timestamp(LocalDateTime.now())
-                .adminAction(false)
-                .build();
-
-        usageRepository.save(usage);
+        saveLog(productId, userId, amount, "Pobrano: " + product.getName(), false);
     }
 
-    // ADMIN: ustawia ilość ręcznie
     public void setQuantity(Long productId, int quantity, Long adminId) {
         if (quantity < 0) throw new IllegalArgumentException("Quantity cannot be negative");
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        int oldQuantity = product.getQuantity();
+        int diff = quantity - product.getQuantity();
         product.setQuantity(quantity);
         productRepository.save(product);
-
-        ProductUsage usage = ProductUsage.builder()
-                .productId(productId)
-                .userId(adminId)
-                .amount(quantity - oldQuantity)
-                .timestamp(LocalDateTime.now())
-                .adminAction(true)
-                .build();
-
-        usageRepository.save(usage);
+        saveLog(productId, adminId, diff, "Korekta stanu magazynowego");
     }
 
     public void delete(Long id, Long adminId) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        ProductUsage usage = ProductUsage.builder()
-                .productId(id)
-                .userId(adminId)
-                .amount(-product.getQuantity())
-                .timestamp(LocalDateTime.now())
-                .adminAction(true)
-                .build();
-
-        usageRepository.save(usage);
-
+        saveLog(id, adminId, -product.getQuantity(), "Usunięto produkt: " + product.getName());
         productRepository.delete(product);
     }
 
-    public void updateProductImage(Long id, String mediaUrl) {
+    public void updateProductImage(Long id, String mediaUrl, Long adminId) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
         product.setMediaUrl(mediaUrl);
         productRepository.save(product);
+        saveLog(id, adminId, 0, "Zaktualizowano zdjęcie produktu");
     }
 
     // HISTORIA
@@ -134,4 +105,21 @@ public class ProductService {
     public List<ProductUsage> getAdminHistory() {
         return usageRepository.findByAdminActionTrue();
     }
+
+    private void saveLog(Long prodId, Long userId, int amount, String desc) {
+        saveLog(prodId, userId, amount, desc, true);
+    }
+
+    private void saveLog(Long prodId, Long userId, int amount, String desc, boolean isAdmin) {
+        ProductUsage usage = ProductUsage.builder()
+                .productId(prodId)
+                .userId(userId)
+                .amount(amount)
+                .description(desc) // opis
+                .timestamp(LocalDateTime.now())
+                .adminAction(isAdmin)
+                .build();
+        usageRepository.save(usage);
+    }
 }
+

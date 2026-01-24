@@ -16,6 +16,7 @@ public class EmployeeService {
     private final EmployeeRepository repository;
     private final EmployeeMapper mapper;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final EmployeeHistoryRepository historyRepository;
 
     public List<EmployeeDTO> getAll() {
         return repository.findAll()
@@ -49,6 +50,7 @@ public class EmployeeService {
         Employee employee = mapper.toEntity(dto);
         employee.setPasswordHash(passwordEncoder.encode(rawPassword));
         Employee saved = repository.save(employee);
+        logHistory("CREATE", "Utworzono pracownika: " + saved.getLogin(), saved.getId());
         return mapper.toDTO(saved);
     }
 
@@ -62,26 +64,46 @@ public class EmployeeService {
         employee.setLogin(dto.getLogin());
         employee.setHospitalId(dto.getHospitalId());
         employee.setActive(dto.isActive());
-
+        logHistory("UPDATE", "Zaktualizowano dane pracownika: " + employee.getLogin(), id);
         return mapper.toDTO(repository.save(employee));
     }
     public EmployeeDTO changeRole(Long id, EmployeeRole role) {
         Employee employee = repository.findByIdIncludingInactive(id)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
 
+        String oldRole = employee.getRole().name();
         employee.setRole(role);
         repository.save(employee);
 
+        logHistory("ROLE_CHANGE", "Zmiana roli " + employee.getLogin() + " z " + oldRole + " na " + role.name(), id);
         return mapper.toDTO(employee);
     }
 
     // soft delete
     public void delete(Long id) {
-        repository.deleteById(id); // -> active=false
+        Employee e = repository.findById(id).orElse(null);
+        repository.deleteById(id);
+        if(e != null) {
+            logHistory("DELETE", "Usunięto pracownika: " + e.getLogin(), id);
+        }
     }
 
     // restore
     public void restore(Long id) {
         repository.restore(id);
+        logHistory("RESTORE", "Przywrócono pracownika ID: " + id, id);
+    }
+
+    private void logHistory(String type, String desc, Long targetId) {
+        historyRepository.save(EmployeeHistory.builder()
+                .actionType(type)
+                .description(desc)
+                .targetEmployeeId(targetId)
+                .timestamp(java.time.LocalDateTime.now())
+                .build());
+    }
+
+    public java.util.List<EmployeeHistory> getHistory() {
+        return historyRepository.findAllByOrderByTimestampDesc();
     }
 }

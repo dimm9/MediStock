@@ -64,4 +64,9 @@ public class EmployeeController {
         service.restore(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("admin/history")
+    public List<EmployeeHistory> getHistory() {
+        return service.getHistory();
+    }
 }

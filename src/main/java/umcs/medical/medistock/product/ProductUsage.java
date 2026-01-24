@@ -30,4 +30,6 @@ public class ProductUsage {
 
     @Column(nullable = false)
     private boolean adminAction; // true jesli admin ustawil ilość lub zrobil delete
+
+    private String description;
 }

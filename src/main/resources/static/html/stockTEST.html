@@ -398,6 +398,59 @@
             transform: translateY(-2px);
         }
 
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        h1 { margin: 0; }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .header-actions { display: flex; gap: 10px; }
+
+        .btn {
+            background: linear-gradient(135deg, #3fa9f5 0%, #0077e6 100%);
+            border: none; padding: 12px 24px; font-size: 14px; font-weight: 700;
+            color: white; cursor: pointer; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 119, 230, 0.2);
+            transition: all 0.2s; letter-spacing: 0.5px; text-transform: uppercase;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 119, 230, 0.3); }
+
+        .btn.secondary { background: white; color: #3fa9f5; border: 2px solid #3fa9f5; box-shadow: none; }
+        .btn.secondary:hover { background: #3fa9f5; color: white; }
+        .btn.active-tab { background: #3fa9f5; color: white; border-color: #3fa9f5; }
+
+        table {
+            width: 100%; border-collapse: separate; border-spacing: 0;
+            overflow: hidden; border-radius: 16px; border: 1px solid #dae1e7;
+            background: white; margin-top: 15px;
+        }
+        thead th {
+            text-align: left; padding: 15px; background: #f8fafc;
+            color: #334e68; font-size: 13px; text-transform: uppercase;
+            letter-spacing: 0.4px; border-bottom: 1px solid #dae1e7;
+        }
+        tbody td {
+            padding: 15px; border-bottom: 1px solid #dae1e7;
+            font-size: 14px; color: #334e68; vertical-align: middle;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+
+        .hidden { display: none !important; }
+        .mini-badge {
+            padding: 5px 10px; border-radius: 6px; font-size: 11px;
+            font-weight: 800; text-transform: uppercase;
+            background: #e3f2fd; color: #102a43;
+        }
+
         @media (max-width: 850px) {
             .container { flex-direction: column; overflow-y: auto; }
             .sidebar { width: 100%; height: auto; padding: 10px; flex-direction: row; justify-content: space-between; align-items: center;}
@@ -413,15 +466,25 @@
 
 <div class="container">
     <main class="main-content">
-        <h1>Magazyny szpitala</h1>
-        <div id="info" class="message"></div>
-
-        <h2>Wybierz magazyn</h2>
-        <div id="stocks-container" class="stocks"></div>
-
-        <div id="products-container">
-            <!-- tutaj produkty -->
+        <div class="header-row">
+            <h1>Panel Pracownika</h1>
+            <div class="header-actions">
+                <button id="btnStocks" class="btn secondary active-tab" onclick="switchView('stocks')">Magazyny</button>
+                <button id="btnHistory" class="btn secondary" onclick="switchView('history')">Historia</button>
+                <button class="btn secondary" onclick="logout()">Wyloguj</button>
+            </div>
         </div>
+        <div id="info" class="message"></div>
+        <section id="stockSection">
+            <h2>Wybierz magazyn</h2>
+            <div id="stocks-container" class="stocks"></div>
+            <div id="products-container"></div>
+        </section>
+        <section id="historySection" class="hidden">
+            <h2>Dziennik operacji</h2>
+            <button class="btn" style="padding: 10px 20px;" onclick="loadHistory()">Odśwież listę</button>
+            <div id="historyTableContainer"></div>
+        </section>
     </main>
 
     <aside class="sidebar">
@@ -503,18 +566,100 @@
         if(type === 'error') el.className = "message error";
         else if(type === 'success') el.className = "message success";
         else el.className = "message";
-        
         el.style.display = text ? "block" : "none";
     }
-
     // opóźnienie demo
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
     // ===== STOCKS =====
+    // ===== PRZEŁĄCZANIE WIDOKÓW =====
+    function switchView(viewName) {
+        const stockSec = document.getElementById('stockSection');
+        const histSec = document.getElementById('historySection');
+        const btnStocks = document.getElementById('btnStocks');
+        const btnHistory = document.getElementById('btnHistory');
+        if (viewName === 'stocks') {
+            stockSec.classList.remove('hidden');
+            histSec.classList.add('hidden');
+            btnStocks.classList.add('active-tab');
+            btnHistory.classList.remove('active-tab');
+        } else {
+            stockSec.classList.add('hidden');
+            histSec.classList.remove('hidden');
+            btnStocks.classList.remove('active-tab');
+            btnHistory.classList.add('active-tab');
+            loadHistory();
+        }
+    }
+
+    // ===== ŁADOWANIE HISTORII (STYL ADMINA + NAZWA PRODUKTU) =====
+    async function loadHistory() {
+        const wrap = document.getElementById("historyTableContainer");
+        wrap.innerHTML = '<p class="message" style="display:block">Ładowanie...</p>';
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/products/history/user`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error("Błąd pobierania");
+            const history = await res.json();
+            history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            if (!history.length) {
+                wrap.innerHTML = "<p class='message' style='display:block'>Brak wpisów w historii.</p>";
+                return;
+            }
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Typ</th>
+                            <th>Opis operacji</th>
+                            <th>Szczegóły</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            history.forEach(h => {
+                const dateStr = new Date(h.timestamp).toLocaleString();
+                const desc = h.description && h.description.trim() !== ""
+                    ? h.description
+                    : "Użycie produktu (brak nazwy)";
+
+                html += `
+                    <tr>
+                        <td>${dateStr}</td>
+                        <td><span class="mini-badge">UZYCIE</span></td>
+                        <td style="font-weight: 500; color: #102a43;">${escapeHtml(desc)}</td>
+                        <td><strong>${h.amount} szt.</strong></td>
+                    </tr>
+                `;
+            });
+            html += `</tbody></table>`;
+            wrap.innerHTML = html;
+        } catch (e) {
+            console.error(e);
+            wrap.innerHTML = '<p class="message error">Nie udało się pobrać historii.</p>';
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return "";
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "login.html";
+    }
 
     async function loadStocks() {
         const url = `${BACKEND_URL}/api/stocks?hospitalId=${encodeURIComponent(HOSPITAL_ID)}`;
-
         try {
             // Próba pobrania z API
             const res = await fetch(url, {

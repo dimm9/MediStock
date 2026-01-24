@@ -362,8 +362,17 @@
         <div class="tabs">
             <div id="tabProducts" class="tab active">Produkty</div>
             <div id="tabEmployees" class="tab">Pracownicy</div>
+            <div id="tabHistory" class="tab">Historia</div>
             <button id="logoutBtn" class="btn secondary" style="margin-left:auto;">Wyloguj</button>
         </div>
+
+        <section id="historySection" class="hidden">
+            <h2>Dziennik zdarzeń</h2>
+            <div class="toolbar">
+                <button id="histReload" class="btn">Odśwież historię</button>
+            </div>
+            <div id="historyTable"></div>
+        </section>
 
         <!-- ===== Produkty ===== -->
         <section id="productsSection">
@@ -468,6 +477,18 @@
     </div>
 </div>
 
+<div id="editModal" class="modal-overlay">
+    <div class="modal" style="max-width: 450px; text-align: left;">
+        <h3 id="editModalTitle">Edycja</h3>
+        <div id="editFormContent" style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0;">
+        </div>
+        <div class="modal-actions">
+            <button onclick="closeEditModal()" class="btn secondary">Anuluj</button>
+            <button id="saveEditBtn" class="btn">Zapisz zmiany</button>
+        </div>
+    </div>
+</div>
+
 <script>
     let currentUploadId = null;
     const BACKEND_URL = "http://localhost:8080";
@@ -512,18 +533,121 @@
     // ===== Tabs
     const tabProducts = document.getElementById("tabProducts");
     const tabEmployees = document.getElementById("tabEmployees");
+    const tabHistory = document.getElementById("tabHistory");
+
     const productsSection = document.getElementById("productsSection");
     const employeesSection = document.getElementById("employeesSection");
+    const historySection = document.getElementById("historySection");
+
 
     function setTab(t) {
         const isProd = t === "prod";
-        tabProducts.classList.toggle("active", isProd);
-        tabEmployees.classList.toggle("active", !isProd);
-        productsSection.classList.toggle("hidden", !isProd);
-        employeesSection.classList.toggle("hidden", isProd);
+        [tabProducts, tabEmployees, tabHistory].forEach(el => el.classList.remove("active"));
+        [productsSection, employeesSection, historySection].forEach(el => el.classList.add("hidden"));
+        if (t === "prod") {
+            tabProducts.classList.add("active");
+            productsSection.classList.remove("hidden");
+        } else if (t === "emp") {
+            tabEmployees.classList.add("active");
+            employeesSection.classList.remove("hidden");
+        } else if (t === "hist") {
+            tabHistory.classList.add("active");
+            historySection.classList.remove("hidden");
+            loadHistory();
+        }
     }
     tabProducts.onclick = () => setTab("prod");
     tabEmployees.onclick = () => setTab("emp");
+    tabHistory.onclick = () => setTab("hist");
+
+    async function loadHistory() {
+        const wrap = document.getElementById("historyTable");
+        wrap.innerHTML = '<p class="message" style="display:block">Ładowanie historii...</p>';
+
+        try {
+            const resProd = await api("/api/products/history/admin", { method: "GET" });
+            const prodHistory = (resProd && resProd.ok) ? await resProd.json() : [];
+
+            const resEmp = await api("/api/employees/admin/history", { method: "GET" });
+            const empHistory = (resEmp && resEmp.ok) ? await resEmp.json() : [];
+
+            const combined = [];
+
+            prodHistory.forEach(item => {
+                let descText = item.description;
+
+                if (!descText) {
+                    descText = item.adminAction
+                        ? `Korekta stanu (ID: ${item.productId}) o: ${item.amount}`
+                        : `Pobranie towaru (ID: ${item.productId}) ilość: ${item.amount}`;
+                }
+
+                combined.push({
+                    date: item.timestamp,
+                    type: "PRODUKT",
+                    description: descText, // <-- Tutaj wstawiamy tekst z backendu
+                    // Jeśli ilość jest różna od 0, pokazujemy ją w szczegółach
+                    details: item.amount !== 0 ? `Ilość: ${item.amount > 0 ? '+' : ''}${item.amount}` : "Info",
+                    color: item.adminAction ? "#e3f2fd" : "#f8fafc", // Niebieski dla admina, szary dla usera
+                    textColor: "#102a43"
+                });
+            });
+
+            // --- PRACOWNICY (BEZ ZMIAN) ---
+            empHistory.forEach(item => {
+                combined.push({
+                    date: item.timestamp,
+                    type: "PRACOWNIK",
+                    description: item.description,
+                    details: item.actionType,
+                    color: "#fff3cd", // Żółty
+                    textColor: "#856404"
+                });
+            });
+
+            // 4. Sortowanie
+            combined.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // 5. Renderowanie
+            if (combined.length === 0) {
+                wrap.innerHTML = `<p class="message" style="display:block">Brak wpisów w historii.</p>`;
+                return;
+            }
+
+            wrap.innerHTML = `
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Typ</th>
+                    <th>Opis zdarzenia</th>
+                    <th>Szczegóły</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${combined.map(row => `
+                    <tr>
+                      <td>${new Date(row.date).toLocaleString()}</td>
+                      <td>
+                        <span class="mini" style="background:${row.color}; color:${row.textColor}; border: 1px solid rgba(0,0,0,0.05);">
+                            ${row.type}
+                        </span>
+                      </td>
+                      <td>${escapeHtml(row.description)}</td>
+                      <td><strong>${escapeHtml(row.details)}</strong></td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            `;
+
+        } catch (e) {
+            console.error(e);
+            wrap.innerHTML = `<p class="message error" style="display:block">Błąd ładowania historii.</p>`;
+        }
+    }
+
+    document.getElementById("histReload").onclick = loadHistory;
 
     // ===== Logout / navigation
     document.getElementById("logoutBtn").onclick = () => { localStorage.clear(); window.location.href = "login.html"; };
@@ -592,47 +716,49 @@
     function renderProducts() {
         const wrap = document.getElementById("productsTable");
         const list = productFilteredSorted();
-
         if (!list.length) {
             wrap.innerHTML = `<p class="message" style="display:block">Brak produktów.</p>`;
             return;
         }
-
         wrap.innerHTML = `
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th><th>Nazwa</th><th>Typ</th><th>Ilość</th><th>Cena</th><th>Dostępny</th><th>Akcje</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${list.map(p => `
-            <tr>
-              <td>${p.id}</td>
-              <td>${escapeHtml(p.name)}</td>
-              <td>${escapeHtml(p.type)}</td>
-              <td>${Number(p.quantity||0)}</td>
-              <td>${Number(p.cost||0).toFixed(2)} PLN</td>
-              <td>${p.available ? "TAK" : "NIE"}</td>
-              <td>
-                <button class="btn mini secondary" onclick="openUpload(${p.id})">Foto</button>
-                <button class="btn mini danger" onclick="deleteProduct(${p.id})">Usuń</button>
-              </td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-    `;
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th><th>Nazwa</th><th>Typ</th><th>Ilość</th><th>Cena</th><th>Dostępny</th><th>Akcje</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${list.map(p => `
+                <tr>
+                  <td>${p.id}</td>
+                  <td>${escapeHtml(p.name)}</td>
+                  <td>${escapeHtml(p.type)}</td>
+                  <td>${Number(p.quantity||0)}</td>
+                  <td>${Number(p.cost||0).toFixed(2)} PLN</td>
+                  <td>${p.available ? "TAK" : "NIE"}</td>
+                  <td>
+                    <button class="btn mini secondary" onclick="openUpload(${p.id})" style="margin-right: 5px;">Foto</button>
+
+                    <button class="btn mini"
+                            style="background-color: #627d98; box-shadow: none; margin-right: 5px;"
+                            onclick="openEditProduct(${p.id})">
+                        Edytuj
+                    </button>
+
+                    <button class="btn mini danger" onclick="deleteProduct(${p.id})">Usuń</button>
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
     }
 
-    // 1. Funkcja wywoływana przyciskiem "Foto"
     function openUpload(id) {
         currentUploadId = id;
-        // Symulujemy kliknięcie w ukryty input
         document.getElementById('globalFileInput').click();
     }
 
-    // 2. Nasłuchiwanie na wybranie pliku (dodaj to raz, np. przy starcie skryptu lub na końcu)
     document.getElementById('globalFileInput').addEventListener('change', async function() {
         if (this.files.length === 0 || !currentUploadId) return;
 
@@ -755,16 +881,13 @@
         return list;
     }
 
-
     function renderEmployees() {
         const wrap = document.getElementById("employeesTable");
         const list = employeesFilteredSorted();
-
         if (!list.length) {
             wrap.innerHTML = `<p class="message" style="display:block">Brak pracowników.</p>`;
             return;
         }
-
         wrap.innerHTML = `
       <table>
         <thead>
@@ -790,6 +913,8 @@
               <td>${Number(e.hospitalId || 0)}</td>
               <td>${e.active ? "TAK" : "NIE"}</td>
               <td>
+                <button class="btn mini" style="background-color: #627d98; box-shadow: none; margin-right: 5px;" onclick="openEditEmployee(${e.id})">Edytuj</button>
+
                 <button class="btn mini danger" onclick="deleteEmployee(${e.id})">Usuń</button>
               </td>
             </tr>
@@ -798,8 +923,6 @@
       </table>
     `;
     }
-
-
 
     async function loadEmployees() {
         const res = await api("/api/employees", { method: "GET" });
@@ -821,39 +944,28 @@
             hospitalId: Number(document.getElementById("eHospitalId").value || 0),
             active: document.getElementById("eActive").checked
         };
-
         const password = document.getElementById("ePass").value;
-
-        // wymagane wg encji: hospitalId, name, login, password_hash (czyli password w payload)
         if (!employee.login || !employee.name || !password || !employee.hospitalId) {
             showMessage("Uzupełnij: login, hasło, name, hospitalId.", "error");
             return;
         }
-
-        // jeśli backend ma @Column(nullable=false) na role, to też sprawdzaj:
         if (!employee.role) {
             showMessage("Wybierz rolę.", "error");
             return;
         }
-
         const payload = { employee, password };
-
         const res = await api("/api/employees", { method: "POST", body: JSON.stringify(payload) });
         if (!res) return;
-
         if (!res.ok) {
             const txt = await res.text().catch(() => "");
             console.error("ADD EMPLOYEE failed:", res.status, txt);
             showMessage("Nie udało się dodać pracownika.", "error");
             return;
         }
-
         showMessage("Dodano pracownika.", "success");
-
         ["eLogin","ePass","eName","eSalary","eHospitalId"].forEach(id => document.getElementById(id).value = "");
         document.getElementById("eActive").checked = true;
         document.getElementById("eRole").value = "DOCTOR";
-
         await loadEmployees();
     }
 
@@ -889,6 +1001,133 @@
         await loadProducts();
         await loadEmployees();
     });
+
+    const editModal = document.getElementById('editModal');
+    const editFormContent = document.getElementById('editFormContent');
+    const editModalTitle = document.getElementById('editModalTitle');
+    const saveEditBtn = document.getElementById('saveEditBtn');
+
+    let currentEditId = null;
+    let currentEditType = null; // 'PRODUCT' lub 'EMPLOYEE'
+
+    window.closeEditModal = function() {
+        editModal.classList.remove('open');
+        currentEditId = null;
+    }
+
+    window.openEditEmployee = function(id) {
+        const e = employeesCache.find(x => x.id === id);
+        if (!e) return;
+
+        currentEditId = id;
+        currentEditType = 'EMPLOYEE';
+        editModalTitle.textContent = `Edycja pracownika: ${e.login}`;
+
+        editFormContent.innerHTML = `
+            <label>Imię i nazwisko:
+                <input id="ed_emp_name" class="input" style="width:100%" value="${escapeHtml(e.name)}">
+            </label>
+            <label>Login:
+                <input id="ed_emp_login" class="input" style="width:100%" value="${escapeHtml(e.login)}">
+            </label>
+            <label>Rola:
+                <select id="ed_emp_role" class="select" style="width:100%">
+                    <option value="ADMINISTRATOR" ${e.role === 'ADMINISTRATOR' ? 'selected' : ''}>ADMINISTRATOR</option>
+                    <option value="DOCTOR" ${e.role === 'DOCTOR' ? 'selected' : ''}>DOCTOR</option>
+                    <option value="NURSE" ${e.role === 'NURSE' ? 'selected' : ''}>NURSE</option>
+                    <option value="WAREHOUSE_WORKER" ${e.role === 'WAREHOUSE_WORKER' ? 'selected' : ''}>WAREHOUSE_WORKER</option>
+                </select>
+            </label>
+            <label>Pensja:
+                <input id="ed_emp_salary" type="number" step="0.01" class="input" style="width:100%" value="${e.salary || 0}">
+            </label>
+            <label style="display:flex; align-items:center; gap:10px; margin-top:5px; cursor:pointer;">
+                <input id="ed_emp_active" type="checkbox" ${e.active ? 'checked' : ''}>
+                Konto aktywne
+            </label>
+        `;
+        editModal.classList.add('open');
+    };
+
+    window.openEditProduct = function(id) {
+        const p = productsCache.find(x => x.id === id);
+        if (!p) return;
+
+        currentEditId = id;
+        currentEditType = 'PRODUCT';
+        editModalTitle.textContent = `Edycja produktu: ${p.name}`;
+
+        editFormContent.innerHTML = `
+            <label>Nazwa: <input id="ed_name" class="input" style="width:100%" value="${escapeHtml(p.name)}"></label>
+            <label>Typ: <input id="ed_type" class="input" style="width:100%" value="${escapeHtml(p.type)}"></label>
+            <div style="display:flex; gap:10px;">
+                <label style="flex:1">Cena: <input id="ed_cost" type="number" step="0.01" class="input" style="width:100%" value="${p.cost}"></label>
+                <label style="flex:1">Ilość: <input id="ed_qty" type="number" class="input" style="width:100%" value="${p.quantity}"></label>
+            </div>
+            <label>Dostępność:
+                <select id="ed_avail" class="select" style="width:100%">
+                    <option value="true" ${p.available ? 'selected' : ''}>Dostępny (TAK)</option>
+                    <option value="false" ${!p.available ? 'selected' : ''}>Niedostępny (NIE)</option>
+                </select>
+            </label>
+        `;
+        editModal.classList.add('open');
+    };
+
+    saveEditBtn.onclick = async () => {
+        if(!currentEditId) return;
+
+        try {
+            let url, body;
+
+            if (currentEditType === 'EMPLOYEE') {
+                url = `/api/employees/${currentEditId}`;
+                const oldEmp = employeesCache.find(x => x.id === currentEditId);
+
+                body = {
+                    id: currentEditId,
+                    hospitalId: oldEmp.hospitalId,
+                    name: document.getElementById('ed_emp_name').value,
+                    login: document.getElementById('ed_emp_login').value,
+                    role: document.getElementById('ed_emp_role').value,
+                    salary: Number(document.getElementById('ed_emp_salary').value),
+                    active: document.getElementById('ed_emp_active').checked
+                };
+            }
+            else if (currentEditType === 'PRODUCT') {
+                url = `/api/products/${currentEditId}`;
+                const oldProd = productsCache.find(x => x.id === currentEditId);
+
+                body = {
+                    id: currentEditId,
+                    stockId: oldProd.stockId,
+                    mediaUrl: oldProd.mediaUrl,
+                    name: document.getElementById('ed_name').value,
+                    type: document.getElementById('ed_type').value,
+                    cost: Number(document.getElementById('ed_cost').value),
+                    quantity: Number(document.getElementById('ed_qty').value),
+                    available: document.getElementById('ed_avail').value === "true"
+                };
+            }
+
+            const res = await api(url, {
+                method: "PUT",
+                body: JSON.stringify(body)
+            });
+
+            if (res && res.ok) {
+                showMessage("Zaktualizowano pomyślnie.", "success");
+                closeEditModal();
+                if (currentEditType === 'PRODUCT') await loadProducts();
+                else await loadEmployees();
+            } else {
+                showMessage("Błąd aktualizacji.", "error");
+            }
+        } catch (e) {
+            console.error(e);
+            showMessage("Błąd połączenia.", "error");
+        }
+    };
 </script>
 </body>
 </html>

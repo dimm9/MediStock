@@ -65,37 +65,55 @@ public class ProductController {
     }
 
     @PostMapping("/add")
-    public ProductDTO create(@RequestBody ProductDTO dto) {
-        return productService.create(dto);
+    public ProductDTO create(
+            @RequestBody ProductDTO dto,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return productService.create(dto, principal.getId());
     }
 
     @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> uploadImage(
             @PathVariable Long id,
-            @RequestParam("file") MultipartFile file
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal UserPrincipal principal
     ) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
         try {
-            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            Path uploadPath = Paths.get("src/main/resources/static/images");
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
+            ProductDTO product = productService.getById(id);
+            String productName = product.getName().replaceAll("\\s+", "_").replaceAll("[^a-zA-Z0-9_\\-]", "");
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.lastIndexOf(".") > 0) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            } else {
+                extension = ".png";
             }
-            Path filePath = uploadPath.resolve(fileName);
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
+            String fileName = productName + extension;
+            Path targetPath = Paths.get("target/classes/static/images");
+            if (!Files.exists(targetPath)) Files.createDirectories(targetPath);
+            Files.copy(file.getInputStream(), targetPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+            Path sourcePath = Paths.get("src/main/resources/static/images");
+            if (!Files.exists(sourcePath)) Files.createDirectories(sourcePath);
+            Files.copy(file.getInputStream(), sourcePath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
             String mediaUrl = "/images/" + fileName;
-            productService.updateProductImage(id, mediaUrl);
+            productService.updateProductImage(id, mediaUrl, principal.getId());
             return ResponseEntity.ok().build();
-
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
-
+    @PutMapping("/{id}")
+    public ProductDTO update(
+            @PathVariable Long id,
+            @RequestBody ProductDTO dto,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return productService.update(id, dto, principal.getId());
+    }
 
     @DeleteMapping("/admin/delete/{id}")
     public ResponseEntity<String> delete(
@@ -108,7 +126,6 @@ public class ProductController {
         productService.delete(id, principal.getId());
         return ResponseEntity.ok("Product deleted");
     }
-
 
     @GetMapping("/history/admin")
     public List<ProductUsage> getAdminHistory() {
