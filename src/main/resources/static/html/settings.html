@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ekran Główny</title>
+    <title>Ustawienia</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -25,7 +25,8 @@
             flex: 1;
             background-color: white;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             padding: 30px;
             position: relative;
             z-index: 10;
@@ -33,23 +34,33 @@
             border-top-right-radius: 30px;
             border-bottom-right-radius: 30px;
             gap: 20px;
-            justify-content: center;
-            align-items: center;
         }
 
-        .gif-container {
+        .settings-box {
             width: 100%;
-            height: 100%;
+            max-width: 600px;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        .gif-container img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            border-radius: 20px;
+        .settings-box h2 {
+            font-size: 28px;
+            color: #334e68;
+        }
+
+        .settings-box p, .settings-box ul {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .settings-box ul {
+            padding-left: 20px;
+        }
+
+        .settings-box ul li {
+            margin-bottom: 10px;
         }
 
         .sidebar {
@@ -64,23 +75,20 @@
         }
 
         .logo {
-            width: 80px;
-            height: 80px;
-            background: white;
-            border-radius: 25px;
+            width: 70px;
+            height: 70px;
+            background: transparent;
+            box-shadow: none;
             display: flex;
             justify-content: center;
             align-items: center;
             margin-bottom: 40px;
             margin-top: 20px;
-            box-shadow: 0 15px 30px -10px rgba(0, 78, 146, 0.15);
             transform: rotate(-5deg);
             transition: transform 0.5s ease;
         }
 
-        .logo:hover {
-            transform: rotate(0deg) scale(1.05);
-        }
+        .logo:hover { transform: rotate(0deg) scale(1.05); }
 
         .logo span {
             background: linear-gradient(135deg, #3fa9f5 0%, #0077e6 100%);
@@ -132,31 +140,75 @@
 </head>
 <body>
 
-    <div class="container">
-        <main class="main-content">
-            <div class="gif-container">
-                <!-- Replace 'path/to/your/image.gif' with the actual path to your GIF -->
-                <img src="http://localhost:8080/images/cat-dance-910708127.gif" alt="Main Display GIF">
-            </div>
-        </main>
+<div class="container">
+    <main class="main-content">
+        <div class="settings-box">
+            <h2>Ustawienia</h2>
+            <p>Witamy w sekcji ustawień. Tutaj możesz dostosować swoje preferencje i zarządzać kontem.</p>
+            <p>Opcje ustawień:</p>
+            <ul>
+                <li>Zmień hasło</li>
+                <li>Zaktualizuj dane osobowe</li>
+                <li>Ustawienia powiadomień</li>
+            </ul>
+        </div>
+    </main>
 
-        <aside class="sidebar">
-            <div class="logo">
-                <span>LOGO</span>
-            </div>
+    <aside class="sidebar">
+        <div class="logo">
+            <img src="http://localhost:8080/images/logo.png"
+                 alt="MediStock Admin"
+                 style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
 
-            <nav class="menu">
-                <a href="#">Konto</a>
-                <a href="#">Ustawienia</a>
-                <a href="#" onclick="logout()">Wyloguj</a>
-            </nav>
-        </aside>
-    </div>
-    <script>
-        function logout() {
-            localStorage.clear();
-            window.location.href = "login.html";
+        <nav class="menu" id="sidebarMenu">
+            <!-- Menu items will be injected here -->
+        </nav>
+    </aside>
+</div>
+
+<script>
+    function logout() {
+        localStorage.clear();
+        window.location.href = "login.html";
+    }
+
+    function renderSidebar() {
+        const role = String(localStorage.getItem('role') || localStorage.getItem('user_role') || "").trim().toUpperCase();
+        const menu = document.getElementById('sidebarMenu');
+        menu.innerHTML = '';
+
+        const isAdmin = (role === "ADMIN" || role === "ADMINISTRATOR");
+
+        // Helper to create link
+        const createLink = (href, text, isActive = false) => {
+            const a = document.createElement('a');
+            a.href = href;
+            a.textContent = text;
+            if (isActive) {
+                a.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+                a.style.color = "#0077e6";
+                a.style.boxShadow = "0 4px 10px rgba(0,0,0,0.05)";
+            }
+            return a;
+        };
+
+        if (isAdmin) {
+            menu.appendChild(createLink("admin.html", "Panel Admina"));
+            menu.appendChild(createLink("depot.html", "Szpitale"));
         }
-    </script>
+
+        menu.appendChild(createLink("stock.html", "Magazyn"));
+        menu.appendChild(createLink("account.html", "Konto"));
+        menu.appendChild(createLink("settings.html", "Ustawienia", true)); // Active
+
+        const logoutLink = createLink("#", "Wyloguj");
+        logoutLink.onclick = logout;
+        menu.appendChild(logoutLink);
+    }
+
+    document.addEventListener("DOMContentLoaded", renderSidebar);
+</script>
+
 </body>
 </html>

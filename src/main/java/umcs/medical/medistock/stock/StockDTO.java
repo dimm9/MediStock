@@ -11,5 +11,4 @@ public class StockDTO {
     private Long id;
     private String name;
     private Long hospitalId;
-    private StockCategory category;
 }

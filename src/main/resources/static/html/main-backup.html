@@ -33,23 +33,62 @@
             border-top-right-radius: 30px;
             border-bottom-right-radius: 30px;
             gap: 20px;
-            justify-content: center;
-            align-items: center;
         }
 
-        .gif-container {
+        .top-nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
             width: 100%;
-            height: 100%;
+            padding-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #3fa9f5 0%, #0077e6 100%);
+            border: none;
+            padding: 15px 25px;
+            min-width: 150px;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 119, 230, 0.2);
+            border-radius: 12px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 119, 230, 0.3);
+        }
+
+        .nav-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Główny panel - placeholder */
+        .panel-display {
+            flex: 1;
+            width: 100%;
+            border: 2px solid rgba(218, 225, 231, 0.6);
+            border-radius: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        .gif-container img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            border-radius: 20px;
+        .panel-text {
+            font-size: 24px;
+            color: #829ab1;
+            font-weight: 600;
+            text-align: center;
         }
 
         .sidebar {
@@ -127,6 +166,8 @@
             .menu { flex-direction: row; gap: 5px; width: auto; }
             .menu a { padding: 5px 10px; font-size: 12px; width: auto; }
             .main-content { border-radius: 0; padding: 20px; }
+            .top-nav { gap: 10px; }
+            .nav-btn { min-width: auto; padding: 10px 15px; font-size: 12px; flex: 1; }
         }
     </style>
 </head>
@@ -134,9 +175,15 @@
 
     <div class="container">
         <main class="main-content">
-            <div class="gif-container">
-                <!-- Replace 'path/to/your/image.gif' with the actual path to your GIF -->
-                <img src="http://localhost:8080/images/cat-dance-910708127.gif" alt="Main Display GIF">
+            <div class="top-nav">
+                <button class="nav-btn" onclick="selectPanel('Panel Administratora')">Administrator</button>
+                <button class="nav-btn" onclick="selectPanel('Panel Lekarza')">Lekarz</button>
+                <button class="nav-btn" onclick="selectPanel('Panel Pielęgniarki')">Pielęgniarka</button>
+                <button class="nav-btn" onclick="selectPanel('Panel Magazyniera')">Magazynier</button>
+            </div>
+
+            <div class="panel-display">
+                <h2 id="panelText" class="panel-text">Wybierz rolę z paska powyżej</h2>
             </div>
         </main>
 
@@ -148,15 +195,18 @@
             <nav class="menu">
                 <a href="#">Konto</a>
                 <a href="#">Ustawienia</a>
-                <a href="#" onclick="logout()">Wyloguj</a>
+                <a href="#">Wyloguj</a>
             </nav>
         </aside>
     </div>
+
     <script>
-        function logout() {
-            localStorage.clear();
-            window.location.href = "login.html";
+        function selectPanel(text) {
+            const panelText = document.getElementById('panelText');
+            panelText.innerText = text;
+            panelText.style.color = '#334e68';
         }
     </script>
+
 </body>
 </html>

@@ -42,6 +42,7 @@ public class AuthService {
                 .token(token)
                 .id(employee.getId())
                 .login(employee.getLogin())
+                .name(employee.getName())
                 .role(employee.getRole().name())
                 .hospitalId(employee.getHospitalId())
                 .build();
@@ -66,6 +67,7 @@ public class AuthService {
                 .token(token)
                 .id(employee.getId())
                 .login(employee.getLogin())
+                .name(employee.getName())
                 .role(employee.getRole().name())
                 .hospitalId(employee.getHospitalId())
                 .build();

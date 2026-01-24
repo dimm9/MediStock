@@ -5,7 +5,7 @@ CREATE TYPE employee_role AS ENUM (
     'NURSE'
 );
 
-CREATE TYPE stock_category AS ENUM (
+CREATE TYPE product_category AS ENUM (
     'BASIC_MEDICAL_EQUIPMENT',
     'SPECIALIZED_MEDICAL_EQUIPMENT',
     'TECHNICAL_EQUIPMENT',
@@ -23,15 +23,14 @@ CREATE TABLE hospital (
 CREATE TABLE stock (
                        id BIGSERIAL PRIMARY KEY,
                        hospital_id BIGINT NOT NULL REFERENCES hospital(id) ON DELETE CASCADE,
-                       name TEXT NOT NULL,
-                       category stock_category NOT NULL
+                       name TEXT NOT NULL
 );
 
 CREATE TABLE product (
                          id BIGSERIAL PRIMARY KEY,
                          stock_id BIGINT NOT NULL REFERENCES stock(id) ON DELETE CASCADE,
                          name TEXT NOT NULL,
-                         type TEXT NOT NULL,
+                         type product_category NOT NULL,
                          cost NUMERIC(12,2) NOT NULL CHECK (cost >= 0),
                          quantity INTEGER NOT NULL CHECK (quantity >= 0),
                          is_available BOOLEAN NOT NULL DEFAULT TRUE,

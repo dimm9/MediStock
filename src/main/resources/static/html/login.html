@@ -269,11 +269,6 @@
                      alt="MediStock Logo"
                      style="width: 100%; height: 100%; object-fit: contain;">
             </div>
-            <nav class="menu">
-                <a href="#">Pomoc</a>
-                <a href="#">Kontakt</a>
-                <a href="#">O nas</a>
-            </nav>
         </aside>
     </div>
 
@@ -340,13 +335,17 @@
                     localStorage.setItem('user_login', data.login);
                     localStorage.setItem('hospital_id', data.hospitalId);
 
+                    // ADDED: Save the name to localStorage
+                    // If name is null/undefined, fallback to login
+                    localStorage.setItem('username', data.name || data.login);
+
                     // (opcjonalnie) UI
                     loginBtn.innerText = "Sukces!";
                     loginBtn.style.background = "#28a745";
 
                     const role = String(data.role || "").toUpperCase();
                     if (role === "ADMINISTRATOR") window.location.href = "admin.html";
-                    else window.location.href = "stockTEST.html";
+                    else window.location.href = "stock.html";
                 } else {
                     errorMsg.style.display = 'block';
                     errorMsg.innerText = "Nieprawidłowe dane logowania.";

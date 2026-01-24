@@ -299,6 +299,7 @@
             text-align: center;
             border-radius: 10px;
             background-color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
         }
         
         .menu a:hover { 
@@ -471,7 +472,6 @@
             <div class="header-actions">
                 <button id="btnStocks" class="btn secondary active-tab" onclick="switchView('stocks')">Magazyny</button>
                 <button id="btnHistory" class="btn secondary" onclick="switchView('history')">Historia</button>
-                <button class="btn secondary" onclick="logout()">Wyloguj</button>
             </div>
         </div>
         <div id="info" class="message"></div>
@@ -489,13 +489,11 @@
 
     <aside class="sidebar">
         <div class="logo">
-            <img src="http://localhost:8080/images/logo.png" alt="Logo" style="width: 60px; height: 60px; object-fit: contain;">
+            <img src="http://localhost:8080/images/logo.png" alt="Logo" style="width: 70px; height: 70px; object-fit: contain;">
         </div>
 
-        <nav class="menu">
-            <a href="#">Pomoc</a>
-            <a href="#">Kontakt</a>
-            <a href="#">O systemie</a>
+        <nav class="menu" id="sidebarMenu">
+            <!-- Menu items will be injected here -->
         </nav>
     </aside>
 </div>
@@ -528,7 +526,7 @@
         .toUpperCase();
 
     if (role === "ADMIN" || role === "ADMINISTRATOR") {
-        window.location.href = "admin.html";
+        // window.location.href = "admin.html";
     }
     const HOSPITAL_ID = Number(localStorage.getItem('hospital_id'));
     if (!HOSPITAL_ID) {
@@ -538,9 +536,9 @@
     }
 
     const MOCK_STOCKS = [
-        { id: 101, name: "Magazyn Centralny", category: "Ogólny" },
-        { id: 102, name: "Apteka Oddziałowa", category: "Leki" },
-        { id: 103, name: "Magazyn Sprzętu", category: "Sprzęt" }
+        { id: 101, name: "Magazyn Centralny" },
+        { id: 102, name: "Apteka Oddziałowa" },
+        { id: 103, name: "Magazyn Sprzętu" }
     ];
 
     const MOCK_PRODUCTS = {
@@ -659,7 +657,17 @@
     }
 
     async function loadStocks() {
-        const url = `${BACKEND_URL}/api/stocks?hospitalId=${encodeURIComponent(HOSPITAL_ID)}`;
+        let url;
+        const role = String(localStorage.getItem('role') || localStorage.getItem('user_role') || "").trim().toUpperCase();
+
+        if (role === "ADMIN" || role === "ADMINISTRATOR") {
+            // Admin sees all stocks
+            url = `${BACKEND_URL}/api/stock/all`;
+        } else {
+            // Regular user sees only their hospital's stocks
+            url = `${BACKEND_URL}/api/stocks?hospitalId=${encodeURIComponent(HOSPITAL_ID)}`;
+        }
+
         try {
             // Próba pobrania z API
             const res = await fetch(url, {
@@ -672,7 +680,7 @@
             const stocks = await res.json();
             renderStocks(stocks);
             if (stocks && stocks.length > 0) {
-                 loadProductsForStock(stocks[0].id, `${stocks[0].name} (${stocks[0].category})`);
+                 loadProductsForStock(stocks[0].id, `${stocks[0].name}`);
             }
         } catch (err) {
             console.warn("Brak połączenia z backendem. Uruchamiam Tryb Demo.", err);
@@ -682,7 +690,7 @@
             showMessage("Tryb Demo: Brak połączenia z serwerem. Wyświetanie danych przykładowych.", "success");
 
             if (MOCK_STOCKS.length > 0) {
-                loadProductsForStock(MOCK_STOCKS[0].id, `${MOCK_STOCKS[0].name} (${MOCK_STOCKS[0].category})`);
+                loadProductsForStock(MOCK_STOCKS[0].id, `${MOCK_STOCKS[0].name}`);
             }
         }
     }
@@ -697,7 +705,7 @@
         stocks.forEach(stock => {
             const btn = document.createElement("button");
             btn.className = "btn";
-            const label = `${stock.name} (${stock.category})`;
+            const label = `${stock.name}`;
             btn.textContent = label;
             btn.onclick = () => loadProductsForStock(stock.id, label);
             container.appendChild(btn);
@@ -891,9 +899,44 @@
         container.appendChild(grid);
     }
 
+    function renderSidebar() {
+        const role = String(localStorage.getItem('role') || localStorage.getItem('user_role') || "").trim().toUpperCase();
+        const menu = document.querySelector('.menu');
+        menu.innerHTML = '';
+
+        const isAdmin = (role === "ADMIN" || role === "ADMINISTRATOR");
+
+        // Helper to create link
+        const createLink = (href, text, isActive = false) => {
+            const a = document.createElement('a');
+            a.href = href;
+            a.textContent = text;
+            if (isActive) {
+                a.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+                a.style.color = "#0077e6";
+                a.style.boxShadow = "0 4px 10px rgba(0,0,0,0.05)";
+            }
+            return a;
+        };
+
+        if (isAdmin) {
+            menu.appendChild(createLink("admin.html", "Panel Admina"));
+            menu.appendChild(createLink("depot.html", "Szpitale"));
+        }
+
+        menu.appendChild(createLink("stock.html", "Magazyn", true)); // Active
+        menu.appendChild(createLink("account.html", "Konto"));
+        menu.appendChild(createLink("settings.html", "Ustawienia"));
+
+        const logoutLink = createLink("#", "Wyloguj");
+        logoutLink.onclick = logout;
+        menu.appendChild(logoutLink);
+    }
+
     // ===== START =====
     document.addEventListener("DOMContentLoaded", () => {
         loadStocks();
+        renderSidebar();
     });
 </script>
 

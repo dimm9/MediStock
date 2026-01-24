@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediStock - Szpitale</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #f0f7ff;
+            color: #334e68;
+        }
+
+        .container {
+            display: flex;
+            height: 100%;
+            width: 100%;
+        }
+
+        .main-content {
+            flex: 1;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 10px 0 40px rgba(0, 119, 230, 0.08);
+            border-top-right-radius: 30px;
+            border-bottom-right-radius: 30px;
+            overflow-y: auto;
+        }
+
+        .main-content::-webkit-scrollbar { width: 8px; }
+        .main-content::-webkit-scrollbar-track { background: #f1f1f1; }
+        .main-content::-webkit-scrollbar-thumb { background: #bcccdc; border-radius: 4px; }
+        .main-content::-webkit-scrollbar-thumb:hover { background: #829ab1; }
+
+        h1 {
+            font-size: 32px;
+            color: #102a43;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        h2 {
+            font-size: 20px;
+            color: #334e68;
+            margin: 25px 0 15px;
+            font-weight: 600;
+            border-bottom: 2px solid #f0f7ff;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 12px;
+            background-color: #f0f7ff;
+            color: #334e68;
+            margin-bottom: 20px;
+            border: 1px solid #dae1e7;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.error {
+            background-color: #ffeef0;
+            color: #d64545;
+            border-color: #f7c5c5;
+            display: block;
+        }
+
+        .message.success {
+            background-color: #e6fffa;
+            color: #234e52;
+            border-color: #b2f5ea;
+            display: block;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3fa9f5 0%, #0077e6 100%);
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 119, 230, 0.2);
+            border-radius: 12px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 119, 230, 0.3);
+        }
+
+        .btn:active { transform: translateY(0); }
+
+        .btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(63, 169, 245, 0.4);
+        }
+
+        .btn.secondary {
+            background: white;
+            color: #3fa9f5;
+            border: 2px solid #3fa9f5;
+            box-shadow: none;
+        }
+        .btn.secondary:hover { background: #3fa9f5; color: white; }
+
+        .sidebar {
+            width: 200px;
+            background: linear-gradient(160deg, #e3f2fd 0%, #bbdefb 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 30px 10px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+            background: transparent;
+            box-shadow: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 40px;
+            margin-top: 20px;
+            transform: rotate(-5deg);
+            transition: transform 0.5s ease;
+        }
+
+        .logo:hover { transform: rotate(0deg) scale(1.05); }
+
+        .logo span {
+            background: linear-gradient(135deg, #3fa9f5 0%, #0077e6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 16px;
+            font-weight: 900;
+            font-style: italic;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #486581;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            padding: 10px 0;
+            width: 80%;
+            text-align: center;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+        }
+
+        .menu a:hover {
+            color: #0077e6;
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        @media (max-width: 850px) {
+            .container { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; height: auto; padding: 10px; flex-direction: row; justify-content: space-between; align-items: center; }
+            .logo { width: 50px; height: 50px; margin: 0; }
+            .logo span { font-size: 10px; }
+            .menu { flex-direction: row; gap: 5px; width: auto; }
+            .menu a { padding: 5px 10px; font-size: 12px; width: auto; }
+            .main-content { border-radius: 0; padding: 20px; }
+        }
+
+        /* ===== DEPOT SPECIFIC STYLES ===== */
+        .hospitals-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .hospital-card {
+            background: white;
+            border: 1px solid #dae1e7;
+            border-radius: 16px;
+            padding: 20px;
+            width: 280px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .hospital-card:hover {
+            border-color: #3fa9f5;
+            box-shadow: 0 15px 35px -10px rgba(0, 119, 230, 0.2);
+            transform: translateY(-4px);
+        }
+
+        .hospital-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #102a43;
+        }
+
+        .hospital-address {
+            font-size: 14px;
+            color: #627d98;
+        }
+
+        .hospital-funds {
+            font-size: 15px;
+            font-weight: 600;
+            color: #234e52;
+            background: #e6fffa;
+            padding: 5px 10px;
+            border-radius: 8px;
+            align-self: flex-start;
+        }
+
+        /* ===== MODAL STYLE ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(16, 42, 67, 0.5);
+            backdrop-filter: blur(3px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            text-align: left;
+            transform: scale(0.95);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.open .modal {
+            transform: scale(1);
+        }
+
+        .modal h3 {
+            margin-bottom: 15px;
+            font-size: 22px;
+            color: #102a43;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #829ab1;
+        }
+        
+        .stock-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .stock-item {
+            padding: 10px;
+            border-bottom: 1px solid #f0f4f8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stock-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stock-name {
+            font-weight: 600;
+            color: #334e68;
+        }
+        
+        .stock-category {
+            font-size: 12px;
+            color: #829ab1;
+            text-transform: uppercase;
+            background: #f0f7ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <main class="main-content">
+        <h1>Lista Szpitali</h1>
+        <div id="info" class="message"></div>
+
+        <div id="hospitalsContainer" class="hospitals-grid">
+            <!-- Hospitals will be loaded here -->
+        </div>
+    </main>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <img src="http://localhost:8080/images/logo.png"
+                 alt="MediStock Admin"
+                 style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        <nav class="menu" id="sidebarMenu">
+            <!-- Menu items will be injected here -->
+        </nav>
+    </aside>
+</div>
+
+<!-- Modal for Hospital Details -->
+<div id="hospitalModal" class="modal-overlay">
+    <div class="modal">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <h3 id="modalHospitalName">Szpital</h3>
+        <p id="modalHospitalAddress" style="color: #627d98; margin-bottom: 20px;"></p>
+        
+        <h4>Magazyny (Stocks):</h4>
+        <ul id="modalStockList" class="stock-list">
+            <!-- Stocks will be loaded here -->
+        </ul>
+    </div>
+</div>
+
+<script>
+    const BACKEND_URL = "http://localhost:8080";
+    const token = localStorage.getItem("jwt_token");
+    if (!token) window.location.href = "login.html";
+
+    const role = String(localStorage.getItem("role") || localStorage.getItem("user_role") || "")
+        .trim()
+        .toUpperCase();
+
+    if (!(role === "ADMIN" || role === "ADMINISTRATOR")) {
+        window.location.href = "stock.html";
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "login.html";
+    }
+
+    function showMessage(text, type="normal") {
+        const el = document.getElementById("info");
+        el.textContent = text;
+        if (type === "error") el.className = "message error";
+        else if (type === "success") el.className = "message success";
+        else el.className = "message";
+        el.style.display = text ? "block" : "none";
+    }
+
+    async function api(path, options = {}) {
+        const res = await fetch(`${BACKEND_URL}${path}`, {
+            ...options,
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json",
+                ...(options.headers || {})
+            }
+        });
+
+        if (res.status === 401 || res.status === 403) {
+            console.error("API Auth Error:", res.status);
+            localStorage.clear();
+            window.location.href = "login.html";
+            return null;
+        }
+        return res;
+    }
+
+    let allStocks = [];
+
+    async function loadData() {
+        try {
+            // 1. Load all stocks first (to map them to hospitals later)
+            const stocksRes = await api("/api/stock/all");
+            if (stocksRes && stocksRes.ok) {
+                allStocks = await stocksRes.json();
+            } else {
+                console.warn("Failed to load stocks");
+            }
+
+            // 2. Load hospitals
+            const hospitalsRes = await api("/api/hospitals/all");
+            if (hospitalsRes && hospitalsRes.ok) {
+                const hospitals = await hospitalsRes.json();
+                renderHospitals(hospitals);
+            } else {
+                showMessage("Nie udało się pobrać listy szpitali.", "error");
+            }
+        } catch (e) {
+            console.error(e);
+            showMessage("Błąd połączenia z serwerem.", "error");
+        }
+    }
+
+    function renderHospitals(hospitals) {
+        const container = document.getElementById("hospitalsContainer");
+        container.innerHTML = "";
+
+        if (hospitals.length === 0) {
+            container.innerHTML = "<p>Brak szpitali w bazie.</p>";
+            return;
+        }
+
+        hospitals.forEach(h => {
+            // Filter stocks belonging to this hospital
+            const hospitalStocks = allStocks.filter(s => s.hospitalId === h.id);
+            const stockCount = hospitalStocks.length;
+
+            const card = document.createElement("div");
+            card.className = "hospital-card";
+            card.onclick = () => openModal(h, hospitalStocks);
+
+            card.innerHTML = `
+                <div class="hospital-name">${escapeHtml(h.name)}</div>
+                <div class="hospital-address">${escapeHtml(h.address)}</div>
+                <div class="hospital-funds">Fundusze: ${Number(h.funds).toFixed(2)} PLN</div>
+                <div style="font-size: 13px; color: #829ab1; margin-top: 5px;">
+                    Liczba magazynów: <strong>${stockCount}</strong>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function openModal(hospital, stocks) {
+        document.getElementById("modalHospitalName").textContent = hospital.name;
+        document.getElementById("modalHospitalAddress").textContent = hospital.address;
+        
+        const list = document.getElementById("modalStockList");
+        list.innerHTML = "";
+
+        if (stocks.length === 0) {
+            list.innerHTML = "<li class='stock-item' style='color: #829ab1;'>Brak magazynów przypisanych do tego szpitala.</li>";
+        } else {
+            stocks.forEach(s => {
+                const li = document.createElement("li");
+                li.className = "stock-item";
+                li.innerHTML = `
+                    <span class="stock-name">${escapeHtml(s.name)}</span>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        document.getElementById("hospitalModal").classList.add("open");
+    }
+
+    function closeModal() {
+        document.getElementById("hospitalModal").classList.remove("open");
+    }
+
+    // Close modal when clicking outside
+    document.getElementById("hospitalModal").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("hospitalModal")) {
+            closeModal();
+        }
+    });
+
+    function escapeHtml(s) {
+        return String(s)
+            .replaceAll("&","&amp;")
+            .replaceAll("<","&lt;")
+            .replaceAll(">","&gt;")
+            .replaceAll('"',"&quot;")
+            .replaceAll("'","&#039;");
+    }
+
+    function renderSidebar() {
+        const role = String(localStorage.getItem('role') || localStorage.getItem('user_role') || "").trim().toUpperCase();
+        const menu = document.getElementById('sidebarMenu');
+        menu.innerHTML = '';
+
+        const isAdmin = (role === "ADMIN" || role === "ADMINISTRATOR");
+
+        // Helper to create link
+        const createLink = (href, text, isActive = false) => {
+            const a = document.createElement('a');
+            a.href = href;
+            a.textContent = text;
+            if (isActive) {
+                a.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+                a.style.color = "#0077e6";
+                a.style.boxShadow = "0 4px 10px rgba(0,0,0,0.05)";
+            }
+            return a;
+        };
+
+        if (isAdmin) {
+            menu.appendChild(createLink("admin.html", "Panel Admina"));
+            menu.appendChild(createLink("depot.html", "Szpitale", true)); // Active
+        }
+
+        menu.appendChild(createLink("stock.html", "Magazyn"));
+        menu.appendChild(createLink("account.html", "Konto"));
+        menu.appendChild(createLink("settings.html", "Ustawienia"));
+
+        const logoutLink = createLink("#", "Wyloguj");
+        logoutLink.onclick = logout;
+        menu.appendChild(logoutLink);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadData();
+        renderSidebar();
+    });
+
+</script>
+
+</body>
+</html>

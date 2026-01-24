@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediStock - Moje Konto</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #f0f7ff;
+            color: #334e68;
+        }
+
+        .container {
+            display: flex;
+            height: 100%;
+            width: 100%;
+        }
+
+        .main-content {
+            flex: 1;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 10px 0 40px rgba(0, 119, 230, 0.08);
+            border-top-right-radius: 30px;
+            border-bottom-right-radius: 30px;
+            overflow-y: auto;
+        }
+
+        .main-content::-webkit-scrollbar { width: 8px; }
+        .main-content::-webkit-scrollbar-track { background: #f1f1f1; }
+        .main-content::-webkit-scrollbar-thumb { background: #bcccdc; border-radius: 4px; }
+        .main-content::-webkit-scrollbar-thumb:hover { background: #829ab1; }
+
+        h1 {
+            font-size: 32px;
+            color: #102a43;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        h2 {
+            font-size: 20px;
+            color: #334e68;
+            margin: 25px 0 15px;
+            font-weight: 600;
+            border-bottom: 2px solid #f0f7ff;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 12px;
+            background-color: #f0f7ff;
+            color: #334e68;
+            margin-bottom: 20px;
+            border: 1px solid #dae1e7;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.error {
+            background-color: #ffeef0;
+            color: #d64545;
+            border-color: #f7c5c5;
+            display: block;
+        }
+
+        .message.success {
+            background-color: #e6fffa;
+            color: #234e52;
+            border-color: #b2f5ea;
+            display: block;
+        }
+
+        .info-card {
+            background: #f8fafc;
+            border: 1px solid #dae1e7;
+            border-radius: 16px;
+            padding: 25px;
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eef3f7;
+        }
+        .info-row:last-child { border-bottom: none; }
+
+        .info-label {
+            font-weight: 600;
+            color: #829ab1;
+            font-size: 14px;
+        }
+
+        .info-value {
+            font-weight: 700;
+            color: #102a43;
+            font-size: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3fa9f5 0%, #0077e6 100%);
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 119, 230, 0.2);
+            border-radius: 12px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            text-transform: uppercase;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 119, 230, 0.3);
+        }
+
+        .sidebar {
+            width: 200px;
+            background: linear-gradient(160deg, #e3f2fd 0%, #bbdefb 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 30px 10px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+            background: transparent;
+            box-shadow: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 40px;
+            margin-top: 20px;
+            transform: rotate(-5deg);
+            transition: transform 0.5s ease;
+        }
+
+        .logo:hover { transform: rotate(0deg) scale(1.05); }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #486581;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            padding: 10px 0;
+            width: 80%;
+            text-align: center;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+        }
+
+        .menu a:hover {
+            color: #0077e6;
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        @media (max-width: 850px) {
+            .container { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; height: auto; padding: 10px; flex-direction: row; justify-content: space-between; align-items: center;}
+            .logo { width: 50px; height: 50px; margin: 0; }
+            .menu { flex-direction: row; gap: 5px; width: auto; }
+            .menu a { padding: 5px 10px; font-size: 12px; width: auto; }
+            .main-content { border-radius: 0; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <main class="main-content">
+        <h1>Moje Konto</h1>
+        <div id="info" class="message"></div>
+
+        <div class="info-card">
+            <div class="info-row">
+                <span class="info-label">Imię i nazwisko</span>
+                <span class="info-value" id="accName">...</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Login</span>
+                <span class="info-value" id="accLogin">...</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Rola</span>
+                <span class="info-value" id="accRole">...</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">ID Szpitala</span>
+                <span class="info-value" id="accHospital">...</span>
+            </div>
+        </div>
+
+        <h2>Akcje</h2>
+        <div style="display: flex; gap: 15px;">
+            <button class="btn" onclick="window.location.href='stock.html'">Przejdź do magazynu</button>
+            <button class="btn" style="background: #ef4e4e;" onclick="logout()">Wyloguj</button>
+        </div>
+    </main>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <img src="http://localhost:8080/images/logo.png" alt="Logo" style="width: 70px; height: 70px; object-fit: contain;">
+        </div>
+
+        <nav class="menu" id="sidebarMenu">
+            <!-- Menu items will be injected here -->
+        </nav>
+    </aside>
+</div>
+
+<script>
+    const BACKEND_URL = "http://localhost:8080";
+    const token = localStorage.getItem('jwt_token');
+
+    if (!token) {
+        window.location.href = "login.html";
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "login.html";
+    }
+
+    function showMessage(text, type = 'normal') {
+        const el = document.getElementById("info");
+        el.textContent = text;
+        if(type === 'error') el.className = "message error";
+        else if(type === 'success') el.className = "message success";
+        else el.className = "message";
+        el.style.display = text ? "block" : "none";
+    }
+
+    async function loadAccountData() {
+        const name = localStorage.getItem('username') || "Nieznany";
+        const role = localStorage.getItem('role') || localStorage.getItem('user_role') || "Brak";
+        const hospitalId = localStorage.getItem('hospital_id') || "Brak";
+        
+        document.getElementById('accName').textContent = name;
+        document.getElementById('accLogin').textContent = name;
+        document.getElementById('accRole').textContent = role;
+        document.getElementById('accHospital').textContent = hospitalId;
+    }
+
+    function renderSidebar() {
+        const role = String(localStorage.getItem('role') || localStorage.getItem('user_role') || "").trim().toUpperCase();
+        const menu = document.getElementById('sidebarMenu');
+        menu.innerHTML = '';
+
+        const isAdmin = (role === "ADMIN" || role === "ADMINISTRATOR");
+
+        // Helper to create link
+        const createLink = (href, text, isActive = false) => {
+            const a = document.createElement('a');
+            a.href = href;
+            a.textContent = text;
+            if (isActive) {
+                a.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+                a.style.color = "#0077e6";
+                a.style.boxShadow = "0 4px 10px rgba(0,0,0,0.05)";
+            }
+            return a;
+        };
+
+        if (isAdmin) {
+            menu.appendChild(createLink("admin.html", "Panel Admina"));
+            menu.appendChild(createLink("depot.html", "Szpitale"));
+        }
+
+        menu.appendChild(createLink("stock.html", "Magazyn"));
+        menu.appendChild(createLink("account.html", "Konto", true)); // Active
+        menu.appendChild(createLink("settings.html", "Ustawienia"));
+
+        const logoutLink = createLink("#", "Wyloguj");
+        logoutLink.onclick = logout;
+        menu.appendChild(logoutLink);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadAccountData();
+        renderSidebar();
+    });
+</script>
+
+</body>
+</html>

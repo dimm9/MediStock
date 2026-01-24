@@ -21,11 +21,11 @@ hospitals = [
 ]
 
 stocks = [
-    (1, "Basic Medical Supplies", "BASIC_MEDICAL_EQUIPMENT"),
-    (2, "Pharmaceuticals", "MEDICINES"),
-    (3, "Lab Testing Kits", "LABORATORY_EQUIPMENT"),
-    (4, "Surgical Instruments", "TECHNICAL_EQUIPMENT"),
-    (5, "Advanced Imaging Equipment", "SPECIALIZED_MEDICAL_EQUIPMENT")
+    (1, "Basic Medical Supplies"),
+    (2, "Pharmaceuticals"),
+    (3, "Lab Testing Kits"),
+    (4, "Surgical Instruments"),
+    (5, "Advanced Imaging Equipment")
 ]
 
 products = [
@@ -82,7 +82,7 @@ def insert_data():
 
         # Insert stocks
         execute_values(cursor, """
-            INSERT INTO stock (hospital_id, name, category) VALUES %s
+            INSERT INTO stock (hospital_id, name) VALUES %s
         """, stocks)
 
         # Insert products

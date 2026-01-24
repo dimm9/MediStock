@@ -145,9 +145,6 @@
             transition: transform 0.5s ease;
         }
 
-        .logo span { display: none; }
-
-
         .logo:hover { transform: rotate(0deg) scale(1.05); }
 
         .logo span {
@@ -363,7 +360,6 @@
             <div id="tabProducts" class="tab active">Produkty</div>
             <div id="tabEmployees" class="tab">Pracownicy</div>
             <div id="tabHistory" class="tab">Historia</div>
-            <button id="logoutBtn" class="btn secondary" style="margin-left:auto;">Wyloguj</button>
         </div>
 
         <section id="historySection" class="hidden">
@@ -389,20 +385,7 @@
                     <option value="cost_asc">Sort: cena rosnąco</option>
                 </select>
                 <button id="prodReload" class="btn">Odśwież</button>
-            </div>
-
-            <h2>Dodaj produkt</h2>
-            <div class="toolbar">
-                <input id="pName" class="input" placeholder="Nazwa" />
-                <input id="pType" class="input" placeholder="Typ" />
-                <input id="pQty" class="input" placeholder="Ilość" type="number" min="0" />
-                <input id="pCost" class="input" placeholder="Cena" type="number" min="0" step="0.01" />
-                <select id="pAvail" class="select">
-                    <option value="true">Dostępny</option>
-                    <option value="false">Niedostępny</option>
-                </select>
-                <input id="pStockId" class="input" placeholder="stockId (liczba)" type="number" min="1" />
-                <button id="prodAdd" class="btn">Dodaj</button>
+                <button id="openAddProductModal" class="btn" style="margin-left: auto;">Dodaj produkt</button>
             </div>
 
             <div id="productsTable"></div>
@@ -458,11 +441,8 @@
                  alt="MediStock Admin"
                  style="width: 100%; height: 100%; object-fit: contain;">
         </div>
-        <nav class="menu">
-            <a id="goStocks">Magazyny</a>
-            <a href="#">Pomoc</a>
-            <a href="#">Kontakt</a>
-            <a href="#">O systemie</a>
+        <nav class="menu" id="sidebarMenu">
+            <!-- Menu items will be injected here -->
         </nav>
     </aside>
 </div>
@@ -489,6 +469,36 @@
     </div>
 </div>
 
+<!-- ===== ADD PRODUCT MODAL ===== -->
+<div id="addProductModal" class="modal-overlay">
+    <div class="modal" style="max-width: 450px; text-align: left;">
+        <h3>Dodaj produkt</h3>
+        <div style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0;">
+            <p id="addProductError" class="message error" style="display:none; margin-bottom: 15px;"></p>
+            <input id="pName" class="input" placeholder="Nazwa" />
+            <select id="pType" class="select">
+                <option value="" disabled selected>Wybierz typ</option>
+                <option value="BASIC_MEDICAL_EQUIPMENT">BASIC_MEDICAL_EQUIPMENT</option>
+                <option value="SPECIALIZED_MEDICAL_EQUIPMENT">SPECIALIZED_MEDICAL_EQUIPMENT</option>
+                <option value="TECHNICAL_EQUIPMENT">TECHNICAL_EQUIPMENT</option>
+                <option value="MEDICINES">MEDICINES</option>
+                <option value="LABORATORY_EQUIPMENT">LABORATORY_EQUIPMENT</option>
+            </select>
+            <input id="pQty" class="input" placeholder="Ilość" type="number" min="0" />
+            <input id="pCost" class="input" placeholder="Cena" type="number" min="0" step="0.01" />
+            <select id="pAvail" class="select">
+                <option value="true">Dostępny</option>
+                <option value="false">Niedostępny</option>
+            </select>
+            <!-- Removed stockId input -->
+        </div>
+        <div class="modal-actions">
+            <button onclick="closeAddProductModal()" class="btn secondary">Anuluj</button>
+            <button id="prodAdd" class="btn">Dodaj</button>
+        </div>
+    </div>
+</div>
+
 <script>
     let currentUploadId = null;
     const BACKEND_URL = "http://localhost:8080";
@@ -500,7 +510,7 @@
         .toUpperCase();
 
     if (!(role === "ADMIN" || role === "ADMINISTRATOR")) {
-        window.location.href = "stockTEST.html";
+        window.location.href = "stock.html";
     }
 
     function showMessage(text, type="normal") {
@@ -649,10 +659,6 @@
 
     document.getElementById("histReload").onclick = loadHistory;
 
-    // ===== Logout / navigation
-    document.getElementById("logoutBtn").onclick = () => { localStorage.clear(); window.location.href = "login.html"; };
-    document.getElementById("goStocks").onclick = () => { window.location.href = "stockTEST.html"; };
-
     // =========================
     //  PRODUCTS
     // =========================
@@ -660,6 +666,21 @@
 
     const prodSearch = document.getElementById("prodSearch");
     const prodSort = document.getElementById("prodSort");
+
+    // Add Product Modal Logic
+    const addProductModal = document.getElementById('addProductModal');
+    const openAddProductModalBtn = document.getElementById('openAddProductModal');
+    const addProductError = document.getElementById('addProductError');
+
+    openAddProductModalBtn.onclick = () => {
+        addProductError.style.display = 'none';
+        addProductModal.classList.add('open');
+    };
+
+    window.closeAddProductModal = function() {
+        addProductError.style.display = 'none';
+        addProductModal.classList.remove('open');
+    };
 
     function showConfirm(title, message) {
         return new Promise((resolve) => {
@@ -797,27 +818,54 @@
     }
 
     async function addProduct() {
-        const dto = {
-            name: document.getElementById("pName").value.trim(),
-            type: document.getElementById("pType").value.trim(),
-            quantity: Number(document.getElementById("pQty").value || 0),
-            cost: Number(document.getElementById("pCost").value || 0),
-            available: document.getElementById("pAvail").value === "true",
-            mediaUrl: null,
-            stockId: Number(document.getElementById("pStockId").value || 0)
-        };
+        const name = document.getElementById("pName").value.trim();
+        const type = document.getElementById("pType").value.trim();
+        const qty = Number(document.getElementById("pQty").value || 0);
+        const cost = Number(document.getElementById("pCost").value || 0);
+        const available = document.getElementById("pAvail").value === "true";
 
-        if (!dto.name || !dto.type || !dto.stockId) {
-            showMessage("Uzupełnij: nazwa, typ, stockId.", "error");
+        addProductError.style.display = 'none';
+
+        if (!name || !type) {
+            addProductError.textContent = "Uzupełnij: nazwa, typ.";
+            addProductError.style.display = 'block';
             return;
         }
 
+        if (qty < 0) {
+            addProductError.textContent = "Ilość nie może być ujemna.";
+            addProductError.style.display = 'block';
+            return;
+        }
+
+        if (cost < 0) {
+            addProductError.textContent = "Cena nie może być ujemna.";
+            addProductError.style.display = 'block';
+            return;
+        }
+
+        const dto = {
+            name: name,
+            type: type,
+            quantity: qty,
+            cost: cost,
+            available: available,
+            mediaUrl: null,
+            stockId: 1 // Temporary hardcoded value to prevent backend error
+        };
+
         const res = await api("/api/products/add", { method: "POST", body: JSON.stringify(dto) });
         if (!res) return;
-        if (!res.ok) { showMessage("Nie udało się dodać produktu.", "error"); return; }
+        if (!res.ok) {
+            addProductError.textContent = "Nie udało się dodać produktu.";
+            addProductError.style.display = 'block';
+            return;
+        }
 
         showMessage("Dodano produkt.", "success");
-        ["pName","pType","pQty","pCost","pStockId"].forEach(id => document.getElementById(id).value = "");
+        ["pName","pType","pQty","pCost"].forEach(id => document.getElementById(id).value = "");
+        document.getElementById("pType").value = ""; // Reset select
+        closeAddProductModal();
         await loadProducts();
     }
 
@@ -1000,6 +1048,7 @@
     document.addEventListener("DOMContentLoaded", async () => {
         await loadProducts();
         await loadEmployees();
+        renderSidebar();
     });
 
     const editModal = document.getElementById('editModal');
@@ -1128,6 +1177,45 @@
             showMessage("Błąd połączenia.", "error");
         }
     };
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = "login.html";
+    }
+
+    function renderSidebar() {
+        const role = String(localStorage.getItem('role') || localStorage.getItem('user_role') || "").trim().toUpperCase();
+        const menu = document.getElementById('sidebarMenu');
+        menu.innerHTML = '';
+
+        const isAdmin = (role === "ADMIN" || role === "ADMINISTRATOR");
+
+        // Helper to create link
+        const createLink = (href, text, isActive = false) => {
+            const a = document.createElement('a');
+            a.href = href;
+            a.textContent = text;
+            if (isActive) {
+                a.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+                a.style.color = "#0077e6";
+                a.style.boxShadow = "0 4px 10px rgba(0,0,0,0.05)";
+            }
+            return a;
+        };
+
+        if (isAdmin) {
+            menu.appendChild(createLink("admin.html", "Panel Admina", true)); // Active
+            menu.appendChild(createLink("depot.html", "Szpitale"));
+        }
+
+        menu.appendChild(createLink("stock.html", "Magazyn"));
+        menu.appendChild(createLink("account.html", "Konto"));
+        menu.appendChild(createLink("settings.html", "Ustawienia"));
+
+        const logoutLink = createLink("#", "Wyloguj");
+        logoutLink.onclick = logout;
+        menu.appendChild(logoutLink);
+    }
 </script>
 </body>
 </html>

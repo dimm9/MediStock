@@ -22,7 +22,7 @@ public class Stock {
     @Column(name = "hospital_id", nullable = false)
     private Long hospitalId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StockCategory category;
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false)
+//    private StockCategory category;
 }
