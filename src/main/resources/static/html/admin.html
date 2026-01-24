@@ -132,19 +132,21 @@
         }
 
         .logo {
-            width: 80px;
-            height: 80px;
-            background: white;
-            border-radius: 25px;
+            width: 70px;
+            height: 70px;
+            background: transparent;
+            box-shadow: none;
             display: flex;
             justify-content: center;
             align-items: center;
             margin-bottom: 40px;
             margin-top: 20px;
-            box-shadow: 0 15px 30px -10px rgba(0, 78, 146, 0.15);
             transform: rotate(-5deg);
             transition: transform 0.5s ease;
         }
+
+        .logo span { display: none; }
+
 
         .logo:hover { transform: rotate(0deg) scale(1.05); }
 
@@ -287,6 +289,67 @@
             .main-content { border-radius: 0; padding: 20px; }
             .input, .select { min-width: 160px; }
         }
+        /* ===== MODAL STYLE ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(16, 42, 67, 0.5); /* Lekko przyciemnione tło */
+            backdrop-filter: blur(3px); /* Rozmycie tła pod spodem */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            transform: scale(0.95);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.open .modal {
+            transform: scale(1);
+        }
+
+        .modal h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #102a43;
+        }
+
+        .modal p {
+            color: #486581;
+            margin-bottom: 25px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-actions button {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -334,6 +397,7 @@
             </div>
 
             <div id="productsTable"></div>
+            <input type="file" id="globalFileInput" style="display: none;" accept="image/*">
         </section>
 
         <!-- ===== Pracownicy ===== -->
@@ -380,7 +444,11 @@
     </main>
 
     <aside class="sidebar">
-        <div class="logo"><span>LOGO</span></div>
+        <div class="logo">
+            <img src="http://localhost:8080/images/logo.png"
+                 alt="MediStock Admin"
+                 style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
         <nav class="menu">
             <a id="goStocks">Magazyny</a>
             <a href="#">Pomoc</a>
@@ -389,8 +457,19 @@
         </nav>
     </aside>
 </div>
+<div id="confirmModal" class="modal-overlay">
+    <div class="modal">
+        <h3 id="modalTitle">Potwierdzenie</h3>
+        <p id="modalMessage">Czy na pewno chcesz wykonać tę akcję?</p>
+        <div class="modal-actions">
+            <button id="btnCancel" class="btn secondary">Anuluj</button>
+            <button id="btnConfirm" class="btn danger">Usuń</button>
+        </div>
+    </div>
+</div>
 
 <script>
+    let currentUploadId = null;
     const BACKEND_URL = "http://localhost:8080";
     const token = localStorage.getItem("jwt_token");
     if (!token) window.location.href = "login.html";
@@ -458,6 +537,29 @@
     const prodSearch = document.getElementById("prodSearch");
     const prodSort = document.getElementById("prodSort");
 
+    function showConfirm(title, message) {
+        return new Promise((resolve) => {
+            const modalOverlay = document.getElementById('confirmModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const btnConfirm = document.getElementById('btnConfirm');
+            const btnCancel = document.getElementById('btnCancel');
+
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalOverlay.classList.add('open');
+
+            const close = (result) => {
+                modalOverlay.classList.remove('open');
+                btnConfirm.replaceWith(btnConfirm.cloneNode(true));
+                btnCancel.replaceWith(btnCancel.cloneNode(true));
+                resolve(result);
+            };
+            document.getElementById('btnConfirm').onclick = () => close(true);
+            document.getElementById('btnCancel').onclick = () => close(false);
+        });
+    }
+
     function productFilteredSorted() {
         const q = (prodSearch.value || "").trim().toLowerCase();
         let list = [...productsCache];
@@ -513,6 +615,7 @@
               <td>${Number(p.cost||0).toFixed(2)} PLN</td>
               <td>${p.available ? "TAK" : "NIE"}</td>
               <td>
+                <button class="btn mini secondary" onclick="openUpload(${p.id})">Foto</button>
                 <button class="btn mini danger" onclick="deleteProduct(${p.id})">Usuń</button>
               </td>
             </tr>
@@ -521,6 +624,43 @@
       </table>
     `;
     }
+
+    // 1. Funkcja wywoływana przyciskiem "Foto"
+    function openUpload(id) {
+        currentUploadId = id;
+        // Symulujemy kliknięcie w ukryty input
+        document.getElementById('globalFileInput').click();
+    }
+
+    // 2. Nasłuchiwanie na wybranie pliku (dodaj to raz, np. przy starcie skryptu lub na końcu)
+    document.getElementById('globalFileInput').addEventListener('change', async function() {
+        if (this.files.length === 0 || !currentUploadId) return;
+
+        const file = this.files[0];
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/products/${currentUploadId}/image`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
+                body: formData
+            });
+            if (res.ok) {
+                showMessage("Zdjęcie dodane pomyślnie.", "success");
+                await loadProducts();
+            } else {
+                showMessage("Błąd wysyłania zdjęcia.", "error");
+            }
+        } catch (err) {
+            console.error(err);
+            showMessage("Błąd połączenia.", "error");
+        }
+        this.value = "";
+        currentUploadId = null;
+    });
 
     async function loadProducts() {
         const res = await api("/api/products/all", { method: "GET" });
@@ -556,13 +696,25 @@
     }
 
     window.deleteProduct = async function(id) {
-        if (!confirm("Usunąć produkt ID " + id + "?")) return;
-        const res = await api(`/api/products/delete/${encodeURIComponent(id)}`, { method: "DELETE" });
+        const confirmed = await showConfirm(
+            "Usuwanie produktu",
+            "Czy na pewno chcesz usunąć produkt ID " + id + "?"
+        );
+        if (!confirmed) return;
+        const res = await api(`/api/products/admin/delete/${encodeURIComponent(id)}`, {
+            method: "DELETE"
+        });
         if (!res) return;
-        if (!res.ok) { showMessage("Nie udało się usunąć produktu.", "error"); return; }
+        if (!res.ok) {
+            const txt = await res.text().catch(() => "");
+            console.error("DELETE PRODUCT failed:", res.status, txt);
+            showMessage("Nie udało się usunąć produktu.", "error");
+            return;
+        }
         showMessage("Usunięto produkt.", "success");
         await loadProducts();
     };
+
 
     document.getElementById("prodReload").onclick = loadProducts;
     document.getElementById("prodAdd").onclick = addProduct;
@@ -707,7 +859,11 @@
 
 
     window.deleteEmployee = async function(id) {
-        if (!confirm("Usunąć pracownika ID " + id + "?")) return;
+        const confirmed = await showConfirm(
+            "Usuwanie pracownika",
+            "Czy na pewno chcesz usunąć pracownika ID " + id + "?"
+        );
+        if (!confirmed) return;
         const res = await api(`/api/employees/${encodeURIComponent(id)}`, { method: "DELETE" });
         if (!res) return;
         if (!res.ok) { showMessage("Nie udało się usunąć pracownika.", "error"); return; }

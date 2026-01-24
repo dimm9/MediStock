@@ -131,17 +131,17 @@
             background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0));
             border-radius: 50%;
         }
-        
-        .logo { 
-            width: 140px; 
-            height: 140px; 
-            background: white; 
-            border-radius: 40px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            margin-bottom: 60px; 
-            box-shadow: 0 25px 50px -12px rgba(0, 78, 146, 0.15);
+
+        .logo {
+            width: 140px;
+            height: 140px;
+            background: transparent;
+            box-shadow: none;
+            border-radius: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 60px;
             transform: rotate(-10deg);
             transition: transform 0.5s ease;
         }
@@ -265,9 +265,10 @@
 
         <aside class="sidebar">
             <div class="logo">
-                <span>LOGO</span>
+                <img src="http://localhost:8080/images/logo.png"
+                     alt="MediStock Logo"
+                     style="width: 100%; height: 100%; object-fit: contain;">
             </div>
-
             <nav class="menu">
                 <a href="#">Pomoc</a>
                 <a href="#">Kontakt</a>

@@ -119,6 +119,13 @@ public class ProductService {
         productRepository.delete(product);
     }
 
+    public void updateProductImage(Long id, String mediaUrl) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        product.setMediaUrl(mediaUrl);
+        productRepository.save(product);
+    }
+
     // HISTORIA
     public List<ProductUsage> getUserHistory(Long userId) {
         return usageRepository.findByUserId(userId);
