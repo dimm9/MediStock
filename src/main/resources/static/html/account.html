@@ -305,6 +305,11 @@
         }
 
         menu.appendChild(createLink("stock.html", "Magazyn"));
+
+        if (isAdmin) {
+            menu.appendChild(createLink("alerts.html", "Powiadomienia"));
+        }
+
         menu.appendChild(createLink("account.html", "Konto", true)); // Active
         menu.appendChild(createLink("settings.html", "Ustawienia"));
 
