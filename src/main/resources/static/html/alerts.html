@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediStock - Powiadomienia</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #f0f7ff;
+            color: #334e68;
+        }
+
+        .container {
+            display: flex;
+            height: 100%;
+            width: 100%;
+        }
+
+        .main-content {
+            flex: 1;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 10px 0 40px rgba(0, 119, 230, 0.08);
+            border-top-right-radius: 30px;
+            border-bottom-right-radius: 30px;
+            overflow-y: auto;
+        }
+
+        .main-content::-webkit-scrollbar { width: 8px; }
+        .main-content::-webkit-scrollbar-track { background: #f1f1f1; }
+        .main-content::-webkit-scrollbar-thumb { background: #bcccdc; border-radius: 4px; }
+        .main-content::-webkit-scrollbar-thumb:hover { background: #829ab1; }
+
+        h1 {
+            font-size: 32px;
+            color: #102a43;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        h2 {
+            font-size: 20px;
+            color: #334e68;
+            margin: 25px 0 15px;
+            font-weight: 600;
+            border-bottom: 2px solid #f0f7ff;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3fa9f5 0%, #0077e6 100%);
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 119, 230, 0.2);
+            border-radius: 12px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 119, 230, 0.3);
+        }
+
+        .btn.secondary {
+            background: white;
+            color: #3fa9f5;
+            border: 2px solid #3fa9f5;
+            box-shadow: none;
+        }
+
+        .sidebar {
+            width: 200px;
+            background: linear-gradient(160deg, #e3f2fd 0%, #bbdefb 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 30px 10px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 40px;
+            margin-top: 20px;
+            transform: rotate(-5deg);
+            transition: transform 0.5s ease;
+        }
+        .logo:hover { transform: rotate(0deg) scale(1.05); }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #486581;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            padding: 10px 0;
+            width: 80%;
+            text-align: center;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+        }
+
+        .menu a:hover {
+            color: #0077e6;
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .alert-card {
+            background: #fff;
+            border: 1px solid #dae1e7;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .alert-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+
+        .alert-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .alert-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .alert-details h3 {
+            font-size: 16px;
+            color: #102a43;
+            margin-bottom: 5px;
+        }
+
+        .alert-details p {
+            font-size: 14px;
+            color: #486581;
+        }
+
+        .alert-critical { border-left: 5px solid #d64545; }
+        .alert-critical .alert-icon { background-color: #ffeef0; color: #d64545; }
+
+        .alert-warning { border-left: 5px solid #f0b429; }
+        .alert-warning .alert-icon { background-color: #fffaeb; color: #b48308; }
+
+        .no-alerts {
+            text-align: center;
+            padding: 40px;
+            color: #486581;
+            background: #f8fafc;
+            border-radius: 16px;
+            border: 2px dashed #dae1e7;
+        }
+
+        @media (max-width: 850px) {
+            .container { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; height: auto; padding: 10px; flex-direction: row; justify-content: space-between; align-items: center; }
+            .logo { width: 50px; height: 50px; margin: 0; }
+            .menu { flex-direction: row; gap: 5px; width: auto; }
+            .menu a { padding: 5px 10px; font-size: 12px; width: auto; }
+            .alert-card { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .alert-content { width: 100%; }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <main class="main-content">
+        <h1>Centrum powiadomień</h1>
+
+        <div class="toolbar">
+            <button id="refreshBtn" class="btn">Odśwież listę</button>
+        </div>
+
+        <h2>Braki magazynowe</h2>
+        <div id="alertsContainer">
+            <div class="no-alerts">Ładowanie danych...</div>
+        </div>
+
+    </main>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <img src="http://localhost:8080/images/logo.png"
+                 alt="MediStock"
+                 style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        <nav class="menu" id="sidebarMenu">
+        </nav>
+    </aside>
+</div>
+
+<script>
+    // --- KONFIGURACJA ---
+    const BACKEND_URL = "http://localhost:8080";
+
+    // progi ostrzeżeń
+    const CATEGORY_THRESHOLDS = {
+        "MEDICINES": 50,
+        "BASIC_MEDICAL_EQUIPMENT": 20,
+        "LABORATORY_EQUIPMENT": 100,
+        "TECHNICAL_EQUIPMENT": 5,
+        "SPECIALIZED_MEDICAL_EQUIPMENT": 1,
+        "DEFAULT": 10
+    };
+
+    // --- AUTH CHECK ---
+    const token = localStorage.getItem("jwt_token");
+    if (!token) window.location.href = "login.html";
+
+    // --- API HELPER ---
+    async function api(path, options = {}) {
+        try {
+            const res = await fetch(`${BACKEND_URL}${path}`, {
+                ...options,
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                    ...(options.headers || {})
+                }
+            });
+
+            if (res.status === 401 || res.status === 403) {
+                localStorage.clear();
+                window.location.href = "login.html";
+                return null;
+            }
+            return res;
+        } catch (err) {
+            console.error("Connection Error:", err);
+            return null;
+        }
+    }
+
+    // --- RENDER MENU ---
+    function renderSidebar() {
+        const role = String(localStorage.getItem('role') || localStorage.getItem('user_role') || "").trim().toUpperCase();
+        const menu = document.getElementById('sidebarMenu');
+        menu.innerHTML = '';
+
+        const isAdmin = (role === "ADMIN" || role === "ADMINISTRATOR");
+
+        const createLink = (href, text, isActive = false) => {
+            const a = document.createElement('a');
+            a.href = href;
+            a.textContent = text;
+            if (isActive) {
+                a.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+                a.style.color = "#0077e6";
+                a.style.boxShadow = "0 4px 10px rgba(0,0,0,0.05)";
+            }
+            return a;
+        };
+
+        if (isAdmin) {
+            menu.appendChild(createLink("admin.html", "Panel Admina"));
+            menu.appendChild(createLink("depot.html", "Szpitale"));
+        }
+
+        menu.appendChild(createLink("stock.html", "Magazyn"));
+        menu.appendChild(createLink("alerts.html", "Powiadomienia", true)); // ACTIVE
+        menu.appendChild(createLink("account.html", "Konto"));
+        menu.appendChild(createLink("settings.html", "Ustawienia"));
+
+        const logoutLink = createLink("#", "Wyloguj");
+        logoutLink.onclick = () => {
+            localStorage.clear();
+            window.location.href = "login.html";
+        };
+        menu.appendChild(logoutLink);
+    }
+
+    // --- ALERTY ---
+    async function loadAlerts() {
+        const container = document.getElementById('alertsContainer');
+        container.innerHTML = '<div class="no-alerts">Sprawdzanie stanów magazynowych...</div>';
+
+        const res = await api("/api/products/all", { method: "GET" });
+        if (!res || !res.ok) {
+            container.innerHTML = '<div class="no-alerts" style="color:red">Błąd połączenia z serwerem.</div>';
+            return;
+        }
+
+        const products = await res.json();
+        const alerts = [];
+
+        products.forEach(p => {
+            const qty = Number(p.quantity || 0);
+            const type = p.type || "DEFAULT";
+
+            const threshold = CATEGORY_THRESHOLDS[type] !== undefined
+                              ? CATEGORY_THRESHOLDS[type]
+                              : CATEGORY_THRESHOLDS["DEFAULT"];
+
+            if (qty === 0) {
+                alerts.push({
+                    type: 'critical',
+                    product: p,
+                    msg: 'Brak towaru! Stan wynosi 0.',
+                    icon: '!'
+                });
+            } else if (qty <= threshold) {
+                alerts.push({
+                    type: 'warning',
+                    product: p,
+                    msg: `Niski stan: ${qty} szt. (próg alertu: ${threshold})`,
+                    icon: '⚠'
+                });
+            }
+        });
+
+        // najpierw krytyczne, potem ostrzeżenia
+        alerts.sort((a, b) => {
+            if (a.type === b.type) return 0;
+            return a.type === 'critical' ? -1 : 1;
+        });
+
+        renderAlerts(alerts);
+    }
+
+    function renderAlerts(alerts) {
+        const container = document.getElementById('alertsContainer');
+
+        if (alerts.length === 0) {
+            container.innerHTML = `
+                <div class="no-alerts" style="background:#e6fffa; color:#234e52; border-color:#b2f5ea">
+                    <h3 style="margin-bottom:10px">Wszystko w porządku</h3>
+                    Wszystkie produkty mają odpowiednią ilość sztuk.
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = alerts.map(alert => `
+            <div class="alert-card alert-${alert.type}">
+                <div class="alert-content">
+                    <div class="alert-icon">${alert.icon}</div>
+                    <div class="alert-details">
+                        <h3>${escapeHtml(alert.product.name)} <span style="font-weight:400; font-size:12px; color:#829ab1">(${alert.product.type})</span></h3>
+                        <p>${alert.msg}</p>
+                    </div>
+                </div>
+                <button class="btn secondary mini" onclick="goToStock()">
+                    Magazyn
+                </button>
+            </div>
+        `).join("");
+    }
+
+    function goToStock() {
+        window.location.href = "stock.html";
+    }
+
+    function escapeHtml(s) {
+        return String(s)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    // --- INICJALIZACJA ---
+    document.addEventListener("DOMContentLoaded", () => {
+        renderSidebar();
+        loadAlerts();
+
+        document.getElementById('refreshBtn').onclick = loadAlerts;
+    });
+
+</script>
+</body>
+</html>
