@@ -211,10 +211,6 @@
 
         <div class="info-card">
             <div class="info-row">
-                <span class="info-label">Imię i nazwisko</span>
-                <span class="info-value" id="accName">...</span>
-            </div>
-            <div class="info-row">
                 <span class="info-label">Login</span>
                 <span class="info-value" id="accLogin">...</span>
             </div>
@@ -272,8 +268,7 @@
         const name = localStorage.getItem('username') || "Nieznany";
         const role = localStorage.getItem('role') || localStorage.getItem('user_role') || "Brak";
         const hospitalId = localStorage.getItem('hospital_id') || "Brak";
-        
-        document.getElementById('accName').textContent = name;
+
         document.getElementById('accLogin').textContent = name;
         document.getElementById('accRole').textContent = role;
         document.getElementById('accHospital').textContent = hospitalId;
